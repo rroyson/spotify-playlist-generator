@@ -17,7 +17,7 @@ export default function Home() {
       try {
         const response = await fetch('/api/auth/check');
         setIsAuthenticated(response.ok);
-      } catch (error) {
+      } catch {
         setIsAuthenticated(false);
       }
     };
@@ -131,7 +131,7 @@ export default function Home() {
             <div className="space-y-8">
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Create Your Playlist</h2>
-                <p className="text-gray-600">Tell us what kind of music you're in the mood for</p>
+                <p className="text-gray-600">Tell us what kind of music you&apos;re in the mood for</p>
               </div>
 
               <form onSubmit={handleGenerateSongs} className="space-y-6">
