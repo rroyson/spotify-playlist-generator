@@ -116,11 +116,24 @@ export default function Home() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-emerald-500 via-blue-600 to-purple-700 p-4 sm:p-8'>
+    <div className='min-h-screen bg-gradient-to-br from-slate-800 via-purple-800 to-slate-800 p-4 sm:p-8'>
       <div className='max-w-4xl mx-auto'>
+        {/* Simple top nav bar when authenticated */}
+        {isAuthenticated && (
+          <div className='flex justify-end mb-4'>
+            <button
+              onClick={handleLogout}
+              className='text-white/70 hover:text-white text-sm transition-colors'
+            >
+              Logout
+            </button>
+          </div>
+        )}
+
+        {/* Centered header */}
         <div className='text-center mb-8'>
           <h1 className='text-4xl sm:text-5xl font-bold text-white mb-4 drop-shadow-lg'>
-            🎵 AI Spotify Playlist Generator
+            AI Spotify Playlist Generator
           </h1>
           <p className='text-white/90 text-lg sm:text-xl'>
             Create personalized playlists using AI and Spotify
@@ -151,21 +164,13 @@ export default function Home() {
             </div>
           ) : (
             <div className='space-y-8'>
-              <div className='flex justify-between items-start'>
-                <div className='text-center flex-1'>
-                  <h2 className='text-2xl font-bold text-gray-800 mb-2'>
-                    Create Your Playlist
-                  </h2>
-                  <p className='text-gray-600'>
-                    Tell us what kind of music you&apos;re in the mood for
-                  </p>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className='bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm'
-                >
-                  Logout
-                </button>
+              <div className='text-center'>
+                <h2 className='text-2xl font-bold text-gray-800 mb-2'>
+                  Create Your Playlist
+                </h2>
+                <p className='text-gray-600'>
+                  Tell us what kind of music you&apos;re in the mood for
+                </p>
               </div>
 
               <form onSubmit={handleGenerateSongs} className='space-y-6'>
