@@ -7,6 +7,7 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [playlistName, setPlaylistName] = useState('')
+  const [songCount, setSongCount] = useState(20)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedSongs, setGeneratedSongs] = useState<Array<{
     artist: string
@@ -76,6 +77,7 @@ export default function Home() {
     try {
       const response = await axios.post('/api/generate-songs', {
         prompt,
+        songCount,
       })
 
       setGeneratedSongs(response.data.songs)
@@ -113,6 +115,7 @@ export default function Home() {
     setPlaylistResult(null)
     setPrompt('')
     setPlaylistName('')
+    setSongCount(20)
   }
 
   return (
@@ -189,6 +192,26 @@ export default function Home() {
                     placeholder='My Awesome Playlist'
                     className='w-full px-4 py-4 text-gray-800 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder-gray-500 text-lg'
                   />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor='songCount'
+                    className='block text-sm font-semibold text-gray-800 mb-3'
+                  >
+                    🎵 Number of songs
+                  </label>
+                  <select
+                    id='songCount'
+                    value={songCount}
+                    onChange={(e) => setSongCount(Number(e.target.value))}
+                    className='w-full px-4 py-4 text-gray-800 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg'
+                  >
+                    <option value={10}>10 songs</option>
+                    <option value={20}>20 songs</option>
+                    <option value={30}>30 songs</option>
+                    <option value={50}>50 songs</option>
+                  </select>
                 </div>
 
                 <div>

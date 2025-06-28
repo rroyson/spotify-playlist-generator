@@ -7,7 +7,7 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt } = await request.json();
+    const { prompt, songCount = 20 } = await request.json();
     const accessToken = request.cookies.get('spotify_access_token')?.value;
 
     if (!accessToken) {
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: "system",
-          content: "You are a music expert. Generate a list of 20 songs based on the user's request. Return only a JSON array with objects containing 'artist' and 'track' fields. No additional text or formatting."
+          content: `You are a music expert. Generate a list of ${songCount} songs based on the user's request. Return only a JSON array with objects containing 'artist' and 'track' fields. No additional text or formatting.`
         },
         {
           role: "user",

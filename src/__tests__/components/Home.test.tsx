@@ -122,6 +122,7 @@ describe('Home Component', () => {
       await waitFor(() => {
         expect(mockedAxios.post).toHaveBeenCalledWith('/api/generate-songs', {
           prompt: 'upbeat workout music',
+          songCount: 20,
         })
       })
 
