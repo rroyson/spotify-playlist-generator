@@ -39,6 +39,13 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['axios'],
   },
 
+  // Turbopack configuration (stable in Next.js 15)
+  turbopack: {
+    resolveAlias: {
+      canvas: './empty-module.js',
+    },
+  },
+
   // Image optimization
   images: {
     formats: ['image/webp', 'image/avif'],

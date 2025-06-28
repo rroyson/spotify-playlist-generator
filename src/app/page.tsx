@@ -7,6 +7,8 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [playlistName, setPlaylistName] = useState('')
+  const [songCount, setSongCount] = useState(20)
+  const [personalityMode, setPersonalityMode] = useState('mainstream')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedSongs, setGeneratedSongs] = useState<Array<{
     artist: string
@@ -76,6 +78,8 @@ export default function Home() {
     try {
       const response = await axios.post('/api/generate-songs', {
         prompt,
+        songCount,
+        personalityMode,
       })
 
       setGeneratedSongs(response.data.songs)
@@ -113,6 +117,8 @@ export default function Home() {
     setPlaylistResult(null)
     setPrompt('')
     setPlaylistName('')
+    setSongCount(20)
+    setPersonalityMode('mainstream')
   }
 
   return (
@@ -189,6 +195,93 @@ export default function Home() {
                     placeholder='My Awesome Playlist'
                     className='w-full px-4 py-4 text-gray-800 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder-gray-500 text-lg'
                   />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor='songCount'
+                    className='block text-sm font-semibold text-gray-800 mb-3'
+                  >
+                    🎵 Number of songs
+                  </label>
+                  <select
+                    id='songCount'
+                    value={songCount}
+                    onChange={(e) => setSongCount(Number(e.target.value))}
+                    className='w-full px-4 py-4 text-gray-800 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg'
+                  >
+                    <option value={10}>10 songs</option>
+                    <option value={20}>20 songs</option>
+                    <option value={30}>30 songs</option>
+                    <option value={50}>50 songs</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className='block text-sm font-semibold text-gray-800 mb-3'>
+                    🎭 AI Personality Mode
+                  </label>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
+                      <input
+                        type='radio'
+                        name='personalityMode'
+                        value='mainstream'
+                        checked={personalityMode === 'mainstream'}
+                        onChange={(e) => setPersonalityMode(e.target.value)}
+                        className='mr-3 text-blue-500 focus:ring-blue-500'
+                      />
+                      <div>
+                        <div className='font-semibold text-gray-800'>🎯 Mainstream</div>
+                        <div className='text-sm text-gray-600'>Popular hits & well-known tracks</div>
+                      </div>
+                    </label>
+                    
+                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
+                      <input
+                        type='radio'
+                        name='personalityMode'
+                        value='discovery'
+                        checked={personalityMode === 'discovery'}
+                        onChange={(e) => setPersonalityMode(e.target.value)}
+                        className='mr-3 text-blue-500 focus:ring-blue-500'
+                      />
+                      <div>
+                        <div className='font-semibold text-gray-800'>🔍 Discovery</div>
+                        <div className='text-sm text-gray-600'>Hidden gems & emerging artists</div>
+                      </div>
+                    </label>
+                    
+                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
+                      <input
+                        type='radio'
+                        name='personalityMode'
+                        value='nostalgia'
+                        checked={personalityMode === 'nostalgia'}
+                        onChange={(e) => setPersonalityMode(e.target.value)}
+                        className='mr-3 text-blue-500 focus:ring-blue-500'
+                      />
+                      <div>
+                        <div className='font-semibold text-gray-800'>📻 Nostalgia</div>
+                        <div className='text-sm text-gray-600'>Classic hits from past decades</div>
+                      </div>
+                    </label>
+                    
+                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
+                      <input
+                        type='radio'
+                        name='personalityMode'
+                        value='experimental'
+                        checked={personalityMode === 'experimental'}
+                        onChange={(e) => setPersonalityMode(e.target.value)}
+                        className='mr-3 text-blue-500 focus:ring-blue-500'
+                      />
+                      <div>
+                        <div className='font-semibold text-gray-800'>🧪 Experimental</div>
+                        <div className='text-sm text-gray-600'>Unique & avant-garde sounds</div>
+                      </div>
+                    </label>
+                  </div>
                 </div>
 
                 <div>
