@@ -123,6 +123,7 @@ describe('Home Component', () => {
         expect(mockedAxios.post).toHaveBeenCalledWith('/api/generate-songs', {
           prompt: 'upbeat workout music',
           songCount: 20,
+          personalityMode: 'mainstream',
         })
       })
 
@@ -220,6 +221,38 @@ describe('Home Component', () => {
       await waitFor(() => {
         const generateButton = screen.getByText('✨ Generate Song Ideas')
         expect(generateButton).not.toBeDisabled()
+      })
+    })
+
+    it('should use selected personality mode when generating songs', async () => {
+      const mockSongs = [{ artist: 'Indie Artist', track: 'Hidden Gem' }]
+
+      mockedAxios.post.mockResolvedValueOnce({
+        data: { songs: mockSongs, success: true },
+      })
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+      })
+
+      // Select Discovery mode
+      const discoveryRadio = screen.getByDisplayValue('discovery')
+      fireEvent.click(discoveryRadio)
+
+      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
+      const generateButton = screen.getByText('✨ Generate Song Ideas')
+
+      fireEvent.change(promptInput, { target: { value: 'indie music' } })
+      fireEvent.click(generateButton)
+
+      await waitFor(() => {
+        expect(mockedAxios.post).toHaveBeenCalledWith('/api/generate-songs', {
+          prompt: 'indie music',
+          songCount: 20,
+          personalityMode: 'discovery',
+        })
       })
     })
   })

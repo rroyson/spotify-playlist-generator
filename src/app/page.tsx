@@ -8,6 +8,7 @@ export default function Home() {
   const [prompt, setPrompt] = useState('')
   const [playlistName, setPlaylistName] = useState('')
   const [songCount, setSongCount] = useState(20)
+  const [personalityMode, setPersonalityMode] = useState('mainstream')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedSongs, setGeneratedSongs] = useState<Array<{
     artist: string
@@ -78,6 +79,7 @@ export default function Home() {
       const response = await axios.post('/api/generate-songs', {
         prompt,
         songCount,
+        personalityMode,
       })
 
       setGeneratedSongs(response.data.songs)
@@ -116,6 +118,7 @@ export default function Home() {
     setPrompt('')
     setPlaylistName('')
     setSongCount(20)
+    setPersonalityMode('mainstream')
   }
 
   return (
@@ -212,6 +215,73 @@ export default function Home() {
                     <option value={30}>30 songs</option>
                     <option value={50}>50 songs</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className='block text-sm font-semibold text-gray-800 mb-3'>
+                    🎭 AI Personality Mode
+                  </label>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
+                      <input
+                        type='radio'
+                        name='personalityMode'
+                        value='mainstream'
+                        checked={personalityMode === 'mainstream'}
+                        onChange={(e) => setPersonalityMode(e.target.value)}
+                        className='mr-3 text-blue-500 focus:ring-blue-500'
+                      />
+                      <div>
+                        <div className='font-semibold text-gray-800'>🎯 Mainstream</div>
+                        <div className='text-sm text-gray-600'>Popular hits & well-known tracks</div>
+                      </div>
+                    </label>
+                    
+                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
+                      <input
+                        type='radio'
+                        name='personalityMode'
+                        value='discovery'
+                        checked={personalityMode === 'discovery'}
+                        onChange={(e) => setPersonalityMode(e.target.value)}
+                        className='mr-3 text-blue-500 focus:ring-blue-500'
+                      />
+                      <div>
+                        <div className='font-semibold text-gray-800'>🔍 Discovery</div>
+                        <div className='text-sm text-gray-600'>Hidden gems & emerging artists</div>
+                      </div>
+                    </label>
+                    
+                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
+                      <input
+                        type='radio'
+                        name='personalityMode'
+                        value='nostalgia'
+                        checked={personalityMode === 'nostalgia'}
+                        onChange={(e) => setPersonalityMode(e.target.value)}
+                        className='mr-3 text-blue-500 focus:ring-blue-500'
+                      />
+                      <div>
+                        <div className='font-semibold text-gray-800'>📻 Nostalgia</div>
+                        <div className='text-sm text-gray-600'>Classic hits from past decades</div>
+                      </div>
+                    </label>
+                    
+                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
+                      <input
+                        type='radio'
+                        name='personalityMode'
+                        value='experimental'
+                        checked={personalityMode === 'experimental'}
+                        onChange={(e) => setPersonalityMode(e.target.value)}
+                        className='mr-3 text-blue-500 focus:ring-blue-500'
+                      />
+                      <div>
+                        <div className='font-semibold text-gray-800'>🧪 Experimental</div>
+                        <div className='text-sm text-gray-600'>Unique & avant-garde sounds</div>
+                      </div>
+                    </label>
+                  </div>
                 </div>
 
                 <div>
