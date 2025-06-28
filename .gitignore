@@ -73,3 +73,6 @@ pids
 .env.development
 .env.test
 .env.production
+
+# Build optimization files
+empty-module.js
