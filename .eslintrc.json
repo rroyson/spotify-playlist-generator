@@ -33,7 +33,7 @@
   },
   "overrides": [
     {
-      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**/*"],
       "env": {
         "jest": true
       },

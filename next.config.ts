@@ -3,7 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // ESLint configuration
   eslint: {
-    dirs: ['src'],
+    dirs: ['src/app'],
+    ignoreDuringBuilds: false,
   },
   
   // Security headers
@@ -35,7 +36,6 @@ const nextConfig: NextConfig = {
 
   // Experimental features for better performance
   experimental: {
-    optimizeCss: true,
     optimizePackageImports: ['axios'],
   },
 
