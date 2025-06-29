@@ -8,7 +8,7 @@ export default function Home() {
   const [prompt, setPrompt] = useState('')
   const [playlistName, setPlaylistName] = useState('')
   const [songCount, setSongCount] = useState(20)
-  const [personalityMode, setPersonalityMode] = useState('mainstream')
+  const [personalityMode, setPersonalityMode] = useState('default')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedSongs, setGeneratedSongs] = useState<Array<{
     artist: string
@@ -222,6 +222,21 @@ export default function Home() {
                     🎭 AI Personality Mode
                   </label>
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
+                      <input
+                        type='radio'
+                        name='personalityMode'
+                        value='default'
+                        checked={personalityMode === 'default'}
+                        onChange={(e) => setPersonalityMode(e.target.value)}
+                        className='mr-3 text-blue-500 focus:ring-blue-500'
+                      />
+                      <div>
+                        <div className='font-semibold text-gray-800'>⚖️ Default</div>
+                        <div className='text-sm text-gray-600'>Balanced mix of all genres & eras</div>
+                      </div>
+                    </label>
+                    
                     <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
                       <input
                         type='radio'
