@@ -123,7 +123,7 @@ describe('Home Component', () => {
         expect(mockedAxios.post).toHaveBeenCalledWith('/api/generate-songs', {
           prompt: 'upbeat workout music',
           songCount: 20,
-          personalityMode: 'mainstream',
+          personalityMode: 'default',
         })
       })
 
