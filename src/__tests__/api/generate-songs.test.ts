@@ -191,7 +191,7 @@ describe('/api/generate-songs', () => {
         cookie: 'spotify_access_token=test_token',
       },
       body: JSON.stringify({
-        prompt: 'pop hits',
+        prompt: 'popular music hits',
         songCount: 10,
         personalityMode: 'mainstream',
       }),
@@ -404,11 +404,7 @@ describe('/api/generate-songs', () => {
     expect(beatlesSongs).toHaveLength(2)
   })
 
-  it('should handle unknown personality mode with default fallback', async () => {
-    mockCreate.mockResolvedValueOnce({
-      choices: [{ message: { content: JSON.stringify(mockSongs) } }],
-    })
-
+  it('should reject unknown personality mode with validation error', async () => {
     const request = new NextRequest('http://localhost:3000/api/generate-songs', {
       method: 'POST',
       headers: {
@@ -422,18 +418,15 @@ describe('/api/generate-songs', () => {
       }),
     })
 
-    await POST(request)
+    const response = await POST(request)
+    const data = await response.json()
 
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        messages: [
-          {
-            role: 'user',
-            content: expect.stringContaining('Create a list of 10 unique songs'),
-          },
-        ],
-      })
-    )
+    expect(response.status).toBe(400)
+    expect(data).toEqual({
+      error: 'Invalid input parameters',
+      details: expect.arrayContaining([expect.stringContaining('Invalid personality mode')])
+    })
+    expect(mockCreate).not.toHaveBeenCalled()
   })
 
   it('should handle markdown-formatted JSON response', async () => {

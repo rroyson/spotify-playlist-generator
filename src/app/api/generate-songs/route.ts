@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { validatePromptInputs } from '@/utils/input-validation'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -70,6 +71,24 @@ export async function POST(request: NextRequest) {
       songCount = 20,
       personalityMode = 'default',
     } = await request.json()
+    
+    // Validate and sanitize input before processing
+    const validation = validatePromptInputs({
+      prompt,
+      songCount,
+      personalityMode
+    });
+
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { 
+          error: 'Invalid input parameters',
+          details: validation.errors
+        },
+        { status: 400 }
+      )
+    }
+
     const accessToken = request.cookies.get('spotify_access_token')?.value
 
     if (!accessToken) {
@@ -79,11 +98,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Use sanitized prompt for processing
+    const sanitizedPrompt = validation.sanitizedPrompt!;
+
     const systemPrompt = getSystemPrompt(personalityMode, songCount)
 
     // Create cache key for this user's session
     const userKey = request.cookies.get('spotify_access_token')?.value?.slice(-10) || 'anonymous'
-    const cacheKey = `${userKey}-${prompt.toLowerCase()}-${personalityMode}-${songCount}`
+    const cacheKey = `${userKey}-${sanitizedPrompt.toLowerCase()}-${personalityMode}-${songCount}`
 
     // Get all previous songs for this user (cross-prompt avoidance)
     const userGlobalHistory = userGlobalCache.get(userKey) || []
@@ -104,7 +126,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: `${systemPrompt} "${prompt}".${avoidanceInstruction}`,
+          content: `${systemPrompt} "${sanitizedPrompt}".${avoidanceInstruction}`,
         },
       ],
       temperature: 0.4, // Slightly higher for variety when avoiding previous songs
