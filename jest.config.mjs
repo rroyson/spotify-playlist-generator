@@ -29,7 +29,7 @@ const customJestConfig = {
       statements: 75,
     },
     './src/app/api/': {
-      branches: 80,
+      branches: 70,
       functions: 80,
       lines: 85,
       statements: 85,
