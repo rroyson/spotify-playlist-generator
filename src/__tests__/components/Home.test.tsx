@@ -167,15 +167,15 @@ describe('Home Component', () => {
       fireEvent.click(generateButton)
 
       await waitFor(() => {
-        expect(screen.getByText('✅ Create Spotify Playlist')).toBeInTheDocument()
+        expect(screen.getByText('✅ Create Playlist (1 songs)')).toBeInTheDocument()
       })
 
-      const createPlaylistButton = screen.getByText('✅ Create Spotify Playlist')
+      const createPlaylistButton = screen.getByText('✅ Create Playlist (1 songs)')
       fireEvent.click(createPlaylistButton)
 
       await waitFor(() => {
         expect(mockedAxios.post).toHaveBeenCalledWith('/api/create-playlist', {
-          songs: mockSongs,
+          songs: mockSongs.map(song => ({ ...song, selected: true })),
           playlistName: 'AI Generated Playlist',
         })
       })

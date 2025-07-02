@@ -13,6 +13,7 @@ export default function Home() {
   const [generatedSongs, setGeneratedSongs] = useState<Array<{
     artist: string
     track: string
+    selected: boolean
   }> | null>(null)
   const [playlistResult, setPlaylistResult] = useState<{
     error?: string
@@ -82,7 +83,13 @@ export default function Home() {
         personalityMode,
       })
 
-      setGeneratedSongs(response.data.songs)
+      // Add selected: true to all songs by default
+      const songs = response.data.songs || []
+      const songsWithSelection = songs.map((song: {artist: string, track: string}) => ({
+        ...song,
+        selected: true
+      }))
+      setGeneratedSongs(songsWithSelection)
     } catch (error) {
       console.error('Error generating songs:', error)
       setPlaylistResult({ error: 'Failed to generate songs' })
@@ -94,12 +101,16 @@ export default function Home() {
   const handleCreatePlaylist = async () => {
     if (!generatedSongs) return
 
+    // Filter to only include selected songs
+    const selectedSongs = generatedSongs.filter(song => song.selected)
+    if (selectedSongs.length === 0) return
+
     setIsCreatingPlaylist(true)
     setPlaylistResult(null)
 
     try {
       const response = await axios.post('/api/create-playlist', {
-        songs: generatedSongs,
+        songs: selectedSongs,
         playlistName: playlistName || 'AI Generated Playlist',
       })
 
@@ -120,6 +131,28 @@ export default function Home() {
     setSongCount(20)
     setPersonalityMode('mainstream')
   }
+
+  const toggleSongSelection = (index: number) => {
+    if (!generatedSongs) return
+    const updatedSongs = generatedSongs.map((song, i) => 
+      i === index ? { ...song, selected: !song.selected } : song
+    )
+    setGeneratedSongs(updatedSongs)
+  }
+
+  const selectAllSongs = () => {
+    if (!generatedSongs) return
+    const updatedSongs = generatedSongs.map(song => ({ ...song, selected: true }))
+    setGeneratedSongs(updatedSongs)
+  }
+
+  const deselectAllSongs = () => {
+    if (!generatedSongs) return
+    const updatedSongs = generatedSongs.map(song => ({ ...song, selected: false }))
+    setGeneratedSongs(updatedSongs)
+  }
+
+  const selectedCount = generatedSongs ? generatedSongs.filter(song => song.selected).length : 0
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-800 via-purple-800 to-slate-800 p-4 sm:p-8'>
@@ -343,19 +376,50 @@ export default function Home() {
                     </button>
                   </div>
 
-                  <p className='text-gray-600 mb-4'>
-                    Here are {generatedSongs.length} songs AI picked for you.
-                    Review them and create your Spotify playlist when ready!
-                  </p>
+                  <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3'>
+                    <p className='text-gray-600'>
+                      Here are {generatedSongs.length} songs AI picked for you.
+                      Review them and create your Spotify playlist when ready!
+                    </p>
+                    <div className='flex gap-2'>
+                      <button
+                        onClick={selectAllSongs}
+                        className='text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-lg transition-colors'
+                      >
+                        Select All
+                      </button>
+                      <button
+                        onClick={deselectAllSongs}
+                        className='text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-lg transition-colors'
+                      >
+                        Deselect All
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className='mb-4'>
+                    <p className='text-sm text-gray-600 font-medium'>
+                      {selectedCount} of {generatedSongs.length} songs selected
+                    </p>
+                  </div>
 
                   <div className='space-y-3 mb-6 max-h-60 overflow-y-auto'>
                     {generatedSongs.map((song, index) => (
                       <div
                         key={index}
-                        className='flex items-center p-3 bg-white rounded-lg shadow-sm'
+                        className={`flex items-center p-3 bg-white rounded-lg shadow-sm transition-all ${
+                          song.selected ? 'opacity-100' : 'opacity-50'
+                        }`}
                       >
+                        <input
+                          type='checkbox'
+                          checked={song.selected}
+                          onChange={() => toggleSongSelection(index)}
+                          className='mr-3 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+                          aria-label={`Select ${song.track} by ${song.artist}`}
+                        />
                         <span className='text-2xl mr-3'>🎵</span>
-                        <div>
+                        <div className={song.selected ? '' : 'line-through'}>
                           <p className='font-semibold text-gray-800'>
                             {song.track}
                           </p>
@@ -368,12 +432,14 @@ export default function Home() {
                   <div className='flex flex-col sm:flex-row gap-3'>
                     <button
                       onClick={handleCreatePlaylist}
-                      disabled={isCreatingPlaylist}
+                      disabled={isCreatingPlaylist || selectedCount === 0}
                       className='flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg'
                     >
                       {isCreatingPlaylist
                         ? '🎵 Creating Playlist...'
-                        : '✅ Create Spotify Playlist'}
+                        : selectedCount === 0
+                        ? 'Select songs to create playlist'
+                        : `✅ Create Playlist (${selectedCount} songs)`}
                     </button>
                     <button
                       onClick={handleStartOver}
