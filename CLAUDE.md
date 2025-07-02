@@ -73,8 +73,6 @@ NEXTAUTH_URL, NEXTAUTH_SECRET
 
 **Security**: Environment-based secrets, secure cookie handling, input validation, and no sensitive data exposure in client-side code.
 
-```
-
 ## Documentation Research Guidelines
 
 - When looking at documentation for Next.js, Tailwind.css, Jest, Jest Mocks you MUST use context7 MCP server to get information.
@@ -82,3 +80,16 @@ NEXTAUTH_URL, NEXTAUTH_SECRET
 ## Development Best Practices
 
 - Before beginning work on a feature or issue, please ensure you are based off the development branch and all of the local code is up to date. Use git pull rebase instead of just the git pull to get code changes where applicable.
+
+## Commit Message Guidelines
+
+- Keep commit messages clear and concise and do not add unnecessary information such as information about claude or the developer.
+
+## Security Guidelines
+
+- NEVER commit .env files or other files with sensitive keys or secrets.
+
+## Pull Request Guidelines
+
+- All pull requests should be made to the development branch. Do not try to merge into main.
+- NEVER push directly to development or main branches
