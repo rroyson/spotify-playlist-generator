@@ -86,6 +86,98 @@ describe('Home Component', () => {
         expect(mockedAxios.post).toHaveBeenCalledWith('/api/auth/logout')
       })
     })
+
+    it('should handle authentication check errors', async () => {
+      // Mock fetch to throw an error
+      ;(global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'))
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Connect to Spotify')).toBeInTheDocument()
+      })
+    })
+
+    it('should handle logout errors', async () => {
+      // Initial auth check - authenticated
+      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+      })
+
+      // Mock logout API call to fail
+      mockedAxios.post.mockRejectedValueOnce(new Error('Logout failed'))
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Logout')).toBeInTheDocument()
+      })
+
+      const logoutButton = screen.getByText('Logout')
+      fireEvent.click(logoutButton)
+
+      // Should still handle the error gracefully
+      await waitFor(() => {
+        expect(mockedAxios.post).toHaveBeenCalledWith('/api/auth/logout')
+      })
+    })
+
+    it('should handle document visibility changes', async () => {
+      // Mock authenticated state
+      ;(global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        status: 200,
+      })
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Create Your Playlist')).toBeInTheDocument()
+      })
+
+      // Clear previous calls
+      ;(global.fetch as jest.Mock).mockClear()
+
+      // Simulate document visibility change
+      Object.defineProperty(document, 'hidden', {
+        writable: true,
+        value: false,
+      })
+
+      // Trigger visibility change event
+      const event = new Event('visibilitychange')
+      document.dispatchEvent(event)
+
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith('/api/auth/check')
+      })
+    })
+
+    it('should handle window focus events', async () => {
+      // Mock authenticated state
+      ;(global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        status: 200,
+      })
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Create Your Playlist')).toBeInTheDocument()
+      })
+
+      // Clear previous calls
+      ;(global.fetch as jest.Mock).mockClear()
+
+      // Trigger window focus event
+      const event = new Event('focus')
+      window.dispatchEvent(event)
+
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith('/api/auth/check')
+      })
+    })
   })
 
   describe('Song Generation Flow', () => {
@@ -306,6 +398,174 @@ describe('Home Component', () => {
         fireEvent.change(playlistNameInput, { target: { value: 'My Custom Playlist' } })
         expect(playlistNameInput).toHaveValue('My Custom Playlist')
       })
+    })
+
+    it('should handle song count changes', async () => {
+      // Mock authenticated state
+      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+      })
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+      }, { timeout: 5000 })
+
+      const songCountSelect = screen.getByLabelText(/Number of songs/)
+      fireEvent.change(songCountSelect, { target: { value: '30' } })
+      expect(songCountSelect).toHaveValue('30')
+    })
+
+    it('should handle personality mode changes', async () => {
+      // Mock authenticated state
+      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+      })
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+      }, { timeout: 5000 })
+
+      const discoveryRadio = screen.getByDisplayValue('discovery')
+      fireEvent.click(discoveryRadio)
+      expect(discoveryRadio).toBeChecked()
+    })
+
+    it('should handle individual song selection changes', async () => {
+      // Mock authenticated state
+      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+      })
+
+      const mockSongs = [
+        { artist: 'Test Artist 1', track: 'Test Song 1' },
+        { artist: 'Test Artist 2', track: 'Test Song 2' },
+      ]
+
+      mockedAxios.post.mockResolvedValueOnce({
+        data: { songs: mockSongs, success: true },
+      })
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+      }, { timeout: 5000 })
+
+      // Generate songs first
+      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
+      const generateButton = screen.getByText('✨ Generate Song Ideas')
+
+      fireEvent.change(promptInput, { target: { value: 'test music' } })
+      fireEvent.click(generateButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('🎵 Your AI-Generated Songs')).toBeInTheDocument()
+      })
+
+      // Test individual song selection
+      const firstSongCheckbox = screen.getByLabelText(/Select Test Song 1 by Test Artist 1/)
+      fireEvent.click(firstSongCheckbox)
+      expect(firstSongCheckbox).not.toBeChecked()
+    })
+
+    it('should handle select all and deselect all functionality', async () => {
+      // Mock authenticated state
+      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+      })
+
+      const mockSongs = [
+        { artist: 'Test Artist 1', track: 'Test Song 1' },
+        { artist: 'Test Artist 2', track: 'Test Song 2' },
+      ]
+
+      mockedAxios.post.mockResolvedValueOnce({
+        data: { songs: mockSongs, success: true },
+      })
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+      }, { timeout: 5000 })
+
+      // Generate songs first
+      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
+      const generateButton = screen.getByText('✨ Generate Song Ideas')
+
+      fireEvent.change(promptInput, { target: { value: 'test music' } })
+      fireEvent.click(generateButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('🎵 Your AI-Generated Songs')).toBeInTheDocument()
+      })
+
+      // Test deselect all
+      const deselectAllButton = screen.getByText('Deselect All')
+      fireEvent.click(deselectAllButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('0 of 2 songs selected')).toBeInTheDocument()
+      })
+
+      // Test select all
+      const selectAllButton = screen.getByText('Select All')
+      fireEvent.click(selectAllButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('2 of 2 songs selected')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Error Handling', () => {
+    it('should handle playlist creation with no selected songs', async () => {
+      // Mock authenticated state
+      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+      })
+
+      const mockSongs = [
+        { artist: 'Test Artist 1', track: 'Test Song 1' },
+      ]
+
+      mockedAxios.post.mockResolvedValueOnce({
+        data: { songs: mockSongs, success: true },
+      })
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+      }, { timeout: 5000 })
+
+      // Generate songs first
+      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
+      const generateButton = screen.getByText('✨ Generate Song Ideas')
+
+      fireEvent.change(promptInput, { target: { value: 'test music' } })
+      fireEvent.click(generateButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('🎵 Your AI-Generated Songs')).toBeInTheDocument()
+      })
+
+      // Deselect all songs
+      const deselectAllButton = screen.getByText('Deselect All')
+      fireEvent.click(deselectAllButton)
+
+      // Try to create playlist with no songs selected
+      const createPlaylistButton = screen.getByText('Select songs to create playlist')
+      expect(createPlaylistButton).toBeDisabled()
     })
   })
 })
