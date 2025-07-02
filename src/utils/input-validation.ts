@@ -24,6 +24,9 @@ export const VALID_PERSONALITY_MODES = [
   'experimental'
 ] as const;
 
+// Type for personality modes
+export type PersonalityMode = typeof VALID_PERSONALITY_MODES[number];
+
 // Prompt validation constants
 export const PROMPT_MIN_LENGTH = 10;
 export const PROMPT_MAX_LENGTH = 1000;
@@ -136,7 +139,7 @@ export function validatePersonalityMode(personalityMode: unknown): string[] {
     return errors;
   }
 
-  if (!VALID_PERSONALITY_MODES.includes(personalityMode as any)) {
+  if (!VALID_PERSONALITY_MODES.includes(personalityMode as PersonalityMode)) {
     errors.push(`Invalid personality mode. Must be one of: ${VALID_PERSONALITY_MODES.join(', ')}`);
   }
 
