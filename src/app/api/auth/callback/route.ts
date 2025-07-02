@@ -37,10 +37,12 @@ export async function GET(request: NextRequest) {
     const { access_token, refresh_token } = tokenResponse.data;
 
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     const response = NextResponse.redirect(process.env.NEXTAUTH_URL!);
     response.cookies.set('spotify_access_token', access_token, {
-      httpOnly: false,
-      secure: false,
+      httpOnly: true,
+      secure: isProduction,
       sameSite: 'lax',
       path: '/',
       maxAge: 3600,
@@ -48,8 +50,8 @@ export async function GET(request: NextRequest) {
     
     if (refresh_token) {
       response.cookies.set('spotify_refresh_token', refresh_token, {
-        httpOnly: false,
-        secure: false,
+        httpOnly: true,
+        secure: isProduction,
         sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24 * 30,
