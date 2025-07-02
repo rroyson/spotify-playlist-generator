@@ -5,14 +5,28 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-// Simple in-memory cache per user session - no persistence needed
+// Enhanced in-memory cache per user session - tracks all songs across prompts
 const userSessionCache = new Map<string, Array<{artist: string, track: string}>>()
+const userGlobalCache = new Map<string, Array<{artist: string, track: string}>>()
+
+const enforceArtistDiversity = (songs: Array<{artist: string, track: string}>, maxPerArtist: number = 2): Array<{artist: string, track: string}> => {
+  const artistCount = new Map<string, number>()
+  return songs.filter(song => {
+    const normalizedArtist = song.artist.toLowerCase().trim()
+    const currentCount = artistCount.get(normalizedArtist) || 0
+    if (currentCount < maxPerArtist) {
+      artistCount.set(normalizedArtist, currentCount + 1)
+      return true
+    }
+    return false
+  })
+}
 
 const getSystemPrompt = (
   personalityMode: string,
   songCount: number
 ): string => {
-  const baseInstruction = `You are an assistant that only responds in JSON. Create a list of ${songCount} unique songs based off the following statement. Include "id", "artist", "track", "album" in your response. An example response is:
+  const baseInstruction = `You are an assistant that only responds in JSON. Create a list of ${songCount} unique songs based off the following statement. Include "id", "artist", "track", "album" in your response. IMPORTANT: Ensure variety by limiting to maximum 2 songs per artist. An example response is:
 [
   {
     "id": 1,
@@ -67,22 +81,22 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = getSystemPrompt(personalityMode, songCount)
 
-    // Create cache key for this user's session and prompt type
+    // Create cache key for this user's session
     const userKey = request.cookies.get('spotify_access_token')?.value?.slice(-10) || 'anonymous'
     const cacheKey = `${userKey}-${prompt.toLowerCase()}-${personalityMode}-${songCount}`
 
-    // Get recent playlists for this user's prompt
-    const recentPlaylist = userSessionCache.get(cacheKey)
+    // Get all previous songs for this user (cross-prompt avoidance)
+    const userGlobalHistory = userGlobalCache.get(userKey) || []
 
-    // Build avoidance instruction if we have previous results
+    // Build enhanced avoidance instruction
     let avoidanceInstruction = ''
-    if (recentPlaylist && recentPlaylist.length > 0) {
-      const recentSongs = recentPlaylist.slice(0, 15) // Show max 15 recent songs to avoid prompt being too long
+    if (userGlobalHistory.length > 0) {
+      const recentSongs = userGlobalHistory.slice(-20) // Last 20 songs across all prompts
       const songList = recentSongs
         .map((song) => `"${song.track}" by ${song.artist}`)
         .join(', ')
 
-      avoidanceInstruction = `\n\nIMPORTANT: I recently generated a playlist for a similar request. To ensure variety, please avoid using more than 20% of these songs: ${songList}. Focus on different artists, decades, sub-genres, or musical styles to create a fresh playlist.`
+      avoidanceInstruction = `\n\nIMPORTANT: To ensure maximum variety, please avoid using more than 5% of these recently generated songs: ${songList}. Focus on different artists, decades, sub-genres, or musical styles. Prioritize diversity over similarity to previous recommendations.`
     }
 
     const completion = await openai.chat.completions.create({
@@ -138,7 +152,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Filter and validate songs - keep only artist and track for our API
-    const validSongs = songs
+    let validSongs = songs
       .filter((song) => song && song.artist && song.track)
       .map((song) => ({
         artist: String(song.artist).trim(),
@@ -146,18 +160,33 @@ export async function POST(request: NextRequest) {
       }))
       .filter((song) => song.artist !== '' && song.track !== '')
 
+    // Apply artist diversity limits (max 2 songs per artist)
+    validSongs = enforceArtistDiversity(validSongs, 2)
+
     console.log(
-      `Generated ${validSongs.length} valid songs out of ${songs.length} total`
+      `Generated ${validSongs.length} valid songs out of ${songs.length} total (after diversity filtering)`
     )
+
+    // Update global user history for cross-prompt avoidance
+    const currentGlobalHistory = userGlobalCache.get(userKey) || []
+    const updatedGlobalHistory = [...currentGlobalHistory, ...validSongs].slice(-100) // Keep last 100 songs
+    userGlobalCache.set(userKey, updatedGlobalHistory)
 
     // Cache the new playlist for this user's future requests
     userSessionCache.set(cacheKey, validSongs.slice(0, 50))
     
-    // Clean up cache if it gets too large (keep last 100 user sessions)
+    // Clean up caches if they get too large
     if (userSessionCache.size > 100) {
       const firstKey = userSessionCache.keys().next().value
       if (firstKey) {
         userSessionCache.delete(firstKey)
+      }
+    }
+    
+    if (userGlobalCache.size > 100) {
+      const firstKey = userGlobalCache.keys().next().value
+      if (firstKey) {
+        userGlobalCache.delete(firstKey)
       }
     }
 
