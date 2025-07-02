@@ -26,6 +26,7 @@ npm run type-check      # Run TypeScript type checking
 This is a **Next.js 15 App Router** application that creates AI-powered Spotify playlists using a **two-step process**:
 
 ### Core Flow
+
 1. **Authentication**: Spotify OAuth with secure cookie-based session management
 2. **AI Generation**: OpenAI GPT generates song recommendations based on user prompts
 3. **Preview & Approval**: Users review AI suggestions before committing
@@ -34,6 +35,7 @@ This is a **Next.js 15 App Router** application that creates AI-powered Spotify 
 ### Key Architecture Patterns
 
 **API Routes Structure**:
+
 - `/api/auth/*` - Spotify OAuth flow (login, callback, check, logout)
 - `/api/generate-songs` - OpenAI integration for song generation with user session caching
 - `/api/create-playlist` - Spotify Web API integration for playlist creation
@@ -44,9 +46,10 @@ This is a **Next.js 15 App Router** application that creates AI-powered Spotify 
 
 **AI Personality Modes**: Five distinct AI personalities (default, mainstream, discovery, nostalgia, experimental) that modify OpenAI system prompts to influence music recommendations.
 
-**Authentication Flow**: 
+**Authentication Flow**:
+
 - Spotify OAuth with `playlist-modify-public` scope
-- HttpOnly cookies for token storage  
+- HttpOnly cookies for token storage
 - Automatic token validation on page focus/visibility change
 - Graceful fallback for expired sessions
 
@@ -59,17 +62,23 @@ This is a **Next.js 15 App Router** application that creates AI-powered Spotify 
 **Error Handling**: Comprehensive error boundaries with user-friendly messages while protecting sensitive API details.
 
 **Environment Variables Required**:
+
 ```
 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI
-OPENAI_API_KEY  
+OPENAI_API_KEY
 NEXTAUTH_URL, NEXTAUTH_SECRET
 ```
 
 **Testing**: Jest + React Testing Library with mocked API calls. Tests cover authentication flow, song generation, playlist creation, and error states.
 
 **Security**: Environment-based secrets, secure cookie handling, input validation, and no sensitive data exposure in client-side code.
+
 ```
 
 ## Documentation Research Guidelines
 
-- When looking at documentation for Next.js, Tailwind.css you MUST use context7 MCP server to get information.
+- When looking at documentation for Next.js, Tailwind.css, Jest, Jest Mocks you MUST use context7 MCP server to get information.
+
+## Development Best Practices
+
+- Before beginning work on a feature or issue, please ensure you are based off the development branch and all of the local code is up to date. Use git pull rebase instead of just the git pull to get code changes where applicable.
