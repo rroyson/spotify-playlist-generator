@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     });
     
     return NextResponse.json({ authenticated: true });
-  } catch (error) {
+  } catch {
     // Token is invalid, expired, or revoked
     return NextResponse.json({ authenticated: false }, { status: 401 });
   }
