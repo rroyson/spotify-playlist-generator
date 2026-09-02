@@ -1,26 +1,217 @@
+/* tastemaker · macrostructure: App shell (topbar + single column tool) · mood: playful · page: app
+ * arc: n/a (Operate surface) · states: gate / form / generating / review / success / error
+ * nav: topbar wordmark + log out · hero: gate split (copy left, tilted example card right)
+ * palette: seed 2 (playful/light) · contrast: pass (matrix 21 pairs + muted/soft/accent extras)
+ * critique: ShowTell 4 · Phil 4 · Hier 5 · Spec 4 · Restr 4 · Var 4 (pass 2: more color presence per user) */
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-canvas: #fff9f8;
+  --color-surface: #f8eeeb;
+  --color-ink: #221815;
+  --color-ink-muted: #6e5e59;
+  --color-primary: #c83314;
+  --color-primary-strong: #a82a10;
+  --color-primary-soft: #ffd2c8;
+  --color-on-primary: #ffffff;
+  --color-accent: #197f73;
+  --color-accent-soft: #d2efe8;
+  --color-line: #e8ddda;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+/* Inline so utilities resolve the next/font variables on <body>, not on :root where they are undefined. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-urbanist), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --dur-press: 120ms;
+  --dur-hover: 150ms;
+  --dur-panel: 200ms;
+  color-scheme: light;
+}
+
+html,
+body {
+  overflow-x: clip;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2 {
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@layer components {
+  .label {
+    @apply mb-2 block text-sm font-semibold;
+  }
+
+  .field {
+    @apply w-full rounded-md border border-line bg-canvas px-4 py-3 text-base placeholder:text-ink-muted/70;
+    min-height: 2.75rem;
+    transition: border-color var(--dur-hover) ease;
+  }
+
+  .field:focus {
+    border-color: var(--color-accent);
+    outline-offset: 0;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-5 font-semibold whitespace-nowrap select-none;
+    min-height: 2.75rem;
+    touch-action: manipulation;
+    transition:
+      transform var(--dur-press) var(--ease-out-strong),
+      background-color var(--dur-hover) ease,
+      border-color var(--dur-hover) ease,
+      color var(--dur-hover) ease;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-on-primary;
+    box-shadow: 0 10px 24px -12px color-mix(in oklch, var(--color-primary) 70%, transparent);
+  }
+
+  .btn-ghost {
+    @apply border bg-transparent text-ink;
+    /* Derived from ink so the outline stays visible on tinted panels, not just the canvas */
+    border-color: color-mix(in oklch, var(--color-ink) 18%, transparent);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--color-primary-strong);
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      background-color: var(--color-surface);
+    }
+
+    .chip:hover {
+      border-color: var(--color-ink-muted);
+    }
+  }
+
+  .chip {
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-full border border-line px-3 py-2 text-sm font-medium select-none sm:flex-col sm:rounded-md sm:px-2 sm:py-3;
+    min-height: 2.5rem;
+    touch-action: manipulation;
+    transition:
+      transform var(--dur-press) var(--ease-out-strong),
+      background-color var(--dur-hover) ease,
+      border-color var(--dur-hover) ease;
+  }
+
+  .chip:active {
+    transform: scale(0.97);
+  }
+
+  .chip:has(input:checked) {
+    background-color: var(--color-primary-soft);
+    border-color: var(--color-primary);
+    box-shadow: inset 0 0 0 1px var(--color-primary);
+  }
+
+  .chip:has(input:checked) svg {
+    color: var(--color-primary);
+  }
+
+  .chip:has(input:focus-visible) {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .panel {
+    @apply rounded-lg border border-line bg-surface p-6 sm:p-8;
+    animation: rise var(--dur-panel) var(--ease-out-strong) both;
+  }
+
+  .row {
+    animation: rise var(--dur-panel) var(--ease-out-strong) both;
+    animation-delay: min(calc(var(--i) * 30ms), 300ms);
+  }
+
+  /* Loading loops below run past the 300ms UI budget on purpose: they signal an in-flight request, not a state change. */
+  .skeleton {
+    @apply rounded-sm bg-line;
+    animation: pulse 1.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+
+  .spinner {
+    @apply inline-block size-4 rounded-full border-2 border-current;
+    border-right-color: transparent;
+    animation: spin 700ms linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .row {
+    animation: fade 150ms ease both;
+    animation-delay: 0ms;
+  }
+
+  .btn:active:not(:disabled),
+  .chip:active {
+    transform: none;
+  }
+
+  .skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
 }
