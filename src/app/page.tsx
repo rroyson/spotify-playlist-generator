@@ -92,7 +92,10 @@ export default function Home() {
       setGeneratedSongs(songsWithSelection)
     } catch (error) {
       console.error('Error generating songs:', error)
-      setPlaylistResult({ error: 'Failed to generate songs' })
+      const res = (error as { response?: { status?: number; data?: { error?: string } } }).response
+      setPlaylistResult({
+        error: res?.status === 429 && res.data?.error ? res.data.error : 'Failed to generate songs',
+      })
     } finally {
       setIsGenerating(false)
     }
