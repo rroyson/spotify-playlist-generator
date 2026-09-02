@@ -27,7 +27,7 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByText('Describe the vibe. Get the playlist.')).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Describe the vibe. Get the playlist.' })).toBeInTheDocument()
         expect(screen.getByText('Connect Spotify')).toBeInTheDocument()
       })
     })
@@ -94,7 +94,7 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByText('Describe the vibe. Get the playlist.')).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Describe the vibe. Get the playlist.' })).toBeInTheDocument()
       })
     })
 

@@ -245,7 +245,8 @@ export default function Home() {
         {!isAuthenticated ? (
           <section className='space-y-10 md:space-y-12'>
             <h1 className='font-display text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-[3.5rem]'>
-              Describe the vibe. Get the playlist.
+              Describe the vibe.{' '}
+              <span className='text-primary'>Get the playlist.</span>
             </h1>
 
             <div className='grid items-center gap-12 md:grid-cols-[1fr_0.9fr]'>
@@ -269,16 +270,22 @@ export default function Home() {
               <div className='relative'>
                 <div
                   aria-hidden='true'
+                  className='absolute -inset-10 -z-10 rounded-full bg-[radial-gradient(closest-side,var(--color-primary-soft),transparent)] opacity-80'
+                />
+                <div
+                  aria-hidden='true'
                   className='absolute inset-0 rotate-2 rounded-lg bg-primary-soft'
                 />
-                <div className='relative -rotate-1 rounded-lg border border-line bg-canvas p-5 shadow-sm'>
-                  <p className='text-xs font-semibold tracking-wide text-ink-muted uppercase'>
-                    Example
-                  </p>
-                  <p className='mt-1 font-display text-lg font-bold'>
-                    &ldquo;{EXAMPLE_PROMPT}&rdquo;
-                  </p>
-                  <ol className='mt-4 divide-y divide-line'>
+                <div className='relative -rotate-1 overflow-hidden rounded-lg border border-line bg-canvas shadow-sm'>
+                  <div className='bg-primary px-5 py-4 text-on-primary'>
+                    <p className='text-xs font-semibold tracking-wide uppercase'>
+                      Example
+                    </p>
+                    <p className='mt-1 font-display text-lg font-bold'>
+                      &ldquo;{EXAMPLE_PROMPT}&rdquo;
+                    </p>
+                  </div>
+                  <ol className='divide-y divide-line px-5 pt-1 pb-2'>
                     {EXAMPLE_SONGS.map((song, i) => (
                       <li
                         key={song.track}
@@ -390,7 +397,7 @@ export default function Home() {
                         onChange={(e) => setPersonalityMode(e.target.value)}
                         className='sr-only'
                       />
-                      <Icon size={18} className='text-primary' />
+                      <Icon size={18} className='text-accent' />
                       {label}
                     </label>
                   ))}
@@ -532,7 +539,10 @@ export default function Home() {
             )}
 
             {playlistResult && !playlistResult.error && (
-              <section className='panel text-center' aria-live='polite'>
+              <section
+                className='panel border-accent-soft bg-accent-soft text-center'
+                aria-live='polite'
+              >
                 <div className='mx-auto flex size-12 items-center justify-center rounded-full bg-accent text-on-primary'>
                   <CheckIcon size={24} />
                 </div>
@@ -562,14 +572,17 @@ export default function Home() {
             )}
 
             {playlistResult?.error && (
-              <section className='panel text-center' role='alert'>
-                <div className='mx-auto flex size-12 items-center justify-center rounded-full bg-primary-soft text-primary'>
+              <section
+                className='panel border-primary-soft bg-primary-soft text-center'
+                role='alert'
+              >
+                <div className='mx-auto flex size-12 items-center justify-center rounded-full bg-primary text-on-primary'>
                   <WarningCircleIcon size={26} />
                 </div>
                 <h2 className='mt-4 font-display text-2xl font-bold'>
                   Something went wrong
                 </h2>
-                <p className='mt-2 text-ink-muted'>{playlistResult.error}</p>
+                <p className='mt-2 text-ink'>{playlistResult.error}</p>
                 <div className='mt-6 flex flex-col justify-center gap-3 sm:flex-row'>
                   <button
                     onClick={() => setPlaylistResult(null)}

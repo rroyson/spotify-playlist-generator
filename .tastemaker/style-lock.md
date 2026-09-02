@@ -7,8 +7,9 @@ Established: 2026-09-01. Source: starter scaffolding (playful mood, `generate_pa
 - Surface: #f8eeeb (panels: review, success, error, skeleton)
 - Primary: #c83314 (primary actions, selected-chip border, mode icons)
 - Primary strong: #a82a10 (primary hover only)
-- Primary soft: #ffd2c8 (selected-chip fill, gate tilt block, error icon disc; never carries primary-colored text)
-- Accent: #197f73 (focus ring, success disc, example-card check icons; text only on canvas)
+- Primary soft: #ffd2c8 (selected-tile fill, gate tilt block, error panel fill; never carries primary-colored or muted text, muted fails at 4.49)
+- Accent: #197f73 (focus ring, success disc, taste-tile icons, example-card check icons; text only on canvas)
+- Accent soft: #d2efe8 (success panel fill; ink 14.26, muted 5.06, accent disc 3.99 UI-safe)
 - Text primary (`ink`): #221815 — contrast vs canvas 16.67 (AA pass)
 - Text muted: #6e5e59 — vs canvas 5.91, vs surface 5.40 (AA pass)
 - Border (`line`): #e8ddda (decorative hairlines; state is carried by color/outline, not the hairline)
@@ -52,10 +53,10 @@ Matrix from `generate_palette.py` (21 pairs) plus three extras checked with `che
 ## Taste memory
 - Profile priors used: calm surfaces with air and one authored moment; light, fast CSS-only motion (no animation libraries); convention at high craft over a themed concept
 - Decision log: `.tastemaker/decisions.log`
-- Last resolved decisions: none yet for this project
-- Pending review: gate tilt card, chip-row taste picker, tomato/teal palette (all logged pending-review)
+- Last resolved decisions: 2026-09-01 rejected the concentric-disc mark (bullseye); rejected calm-only color presence (dull)
+- Pending review: new sleeve-and-record mark; second-pass color presence (two-tone headline, cover band, tinted panels, CTA shadow); tilt card; tile picker
 - Profile promotion: none
-- Memory precedence note: user asked for "fun"; profile prefers calm. Resolved as a calm base with one saturated primary and one tilted moment.
+- Memory precedence note: user asked for "fun", profile prefers calm. First pass leaned calm and the user called it dull, so the current request wins: color now appears wherever it carries meaning (headline emphasis, cover band, state panels, selected tile) while the canvas stays quiet.
 
 ## Navigation chrome
 - Topbar only (no sidebar): wordmark left, "Log out" ghost button right; content area on canvas
@@ -70,7 +71,7 @@ warm, crisp, playful-but-calm
 - Asset style: Phosphor regular icons, single set, rendered with `currentColor` from `src/components/icons.tsx`
 - Illustration vs. photography split: none used — the product's own output (a track list) is the visual; no concept sections needed one
 - Illustration source used: n/a (`~/.ideagram/undraw/` not populated; not needed)
-- Logo: constructed from three circles in the locked palette; wordmark "Playlist Generator" in Urbanist bold
+- Logo: a teal record (circle + canvas centre) sliding out of a tomato sleeve (rounded rect); replaced the concentric-disc mark the user read as a bullseye. Wordmark "Playlist Generator" in Urbanist bold
 
 ## Motion
 - Feel: quick and confirming; one soft entrance per panel
@@ -83,7 +84,7 @@ warm, crisp, playful-but-calm
 - Verified by: `scripts/audit_motion.py src/app src/components` (3 MEDIUM, all loading loops or CSS-side reduced-motion, documented) + `anti_slop_scan.py` pass + Playwright captures of every state at 1280 and 390 on 2026-09-01
 
 ## Do not
-- No gradients on canvas, buttons, or text
+- No gradient fills on buttons or text; the one soft radial glow behind the gate's example card is the deliberate exception
 - No emoji as icons
 - No Spotify green or indigo/purple as UI colors
 - No hover:scale on cards or buttons; press-only scale
