@@ -173,7 +173,7 @@ describe('/api/create-playlist', () => {
     expect(data.totalSongs).toBe(0)
   })
 
-  it('should handle Spotify user profile fetch error', async () => {
+  it('should return 401 when Spotify rejects the token', async () => {
     mockedAxios.get.mockRejectedValueOnce(new Error('User profile error'))
 
     const request = new NextRequest('http://localhost:3000/api/create-playlist', {
@@ -191,8 +191,9 @@ describe('/api/create-playlist', () => {
     const response = await POST(request)
     const data = await response.json()
 
-    expect(response.status).toBe(500)
-    expect(data).toEqual({ error: 'Failed to create playlist' })
+    expect(response.status).toBe(401)
+    expect(data).toEqual({ error: 'Not authenticated with Spotify' })
+    expect(mockedAxios.post).not.toHaveBeenCalled()
   })
 
   it('should handle playlist creation error', async () => {
