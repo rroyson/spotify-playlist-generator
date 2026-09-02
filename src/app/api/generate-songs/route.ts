@@ -3,6 +3,9 @@ import OpenAI from 'openai'
 import { validatePromptInputs } from '@/utils/input-validation'
 import { safeError } from '@/utils/safe-error'
 import { getSpotifySession } from '@/utils/spotify-session'
+import { isOverLimit } from '@/utils/rate-limit'
+
+const GENERATIONS_PER_HOUR = 20
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -98,6 +101,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Not authenticated with Spotify' },
         { status: 401 }
+      )
+    }
+
+    if (isOverLimit(session.userId, GENERATIONS_PER_HOUR)) {
+      return NextResponse.json(
+        { error: `Limit of ${GENERATIONS_PER_HOUR} playlists per hour reached. Try again later.` },
+        { status: 429 }
       )
     }
 

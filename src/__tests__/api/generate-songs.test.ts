@@ -680,4 +680,34 @@ describe('/api/generate-songs', () => {
     expect(data).toEqual({ error: 'Not authenticated with Spotify' })
   })
 
+
+  it('returns 429 without calling OpenAI once the hourly limit is reached', async () => {
+    ;(axios.get as jest.Mock).mockResolvedValue({ data: { id: 'heavy-user' } })
+    mockCreate.mockResolvedValue({
+      choices: [{ message: { content: JSON.stringify(mockSongs) } }],
+    })
+    const makeRequest = () =>
+      new NextRequest('http://localhost:3000/api/generate-songs', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          cookie: 'spotify_access_token=test_token',
+        },
+        body: JSON.stringify({ prompt: 'upbeat workout music', songCount: 5, personalityMode: 'default' }),
+      })
+
+    // GENERATIONS_PER_HOUR in the route
+    for (let i = 0; i < 20; i++) {
+      expect((await POST(makeRequest())).status).toBe(200)
+    }
+    mockCreate.mockClear()
+
+    const response = await POST(makeRequest())
+    const data = await response.json()
+
+    expect(response.status).toBe(429)
+    expect(data.error).toMatch(/per hour/)
+    expect(mockCreate).not.toHaveBeenCalled()
+    mockCreate.mockReset()
+  })
 })

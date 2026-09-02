@@ -278,6 +278,25 @@ describe('Home Component', () => {
       })
     })
 
+    it('shows the server message when generation is rate limited', async () => {
+      mockedAxios.post.mockRejectedValueOnce({
+        response: { status: 429, data: { error: 'Limit of 20 playlists per hour reached. Try again later.' } },
+      })
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+      })
+
+      fireEvent.change(screen.getByLabelText(/Describe your perfect playlist/), { target: { value: 'test music' } })
+      fireEvent.click(screen.getByText('✨ Generate Song Ideas'))
+
+      await waitFor(() => {
+        expect(screen.getByText('Limit of 20 playlists per hour reached. Try again later.')).toBeInTheDocument()
+      })
+    })
+
     it('should handle errors during song generation', async () => {
       mockedAxios.post.mockRejectedValueOnce(new Error('API Error'))
 
