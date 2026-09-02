@@ -29,6 +29,10 @@ afterEach(() => {
   process.env = originalEnv
 })
 
+const STATE = 'expected-state'
+const callbackRequest = (query: string, cookie: string | null = `spotify_oauth_state=${STATE}`) =>
+  new NextRequest(`http://localhost:3000/api/auth/callback${query}`, cookie ? { headers: { cookie } } : undefined)
+
 describe('/api/auth/callback', () => {
   it('should exchange authorization code for tokens successfully', async () => {
     // Mock successful token exchange
@@ -40,7 +44,7 @@ describe('/api/auth/callback', () => {
       },
     })
 
-    const request = new NextRequest('http://localhost:3000/api/auth/callback?code=test_code')
+    const request = callbackRequest(`?code=test_code&state=${STATE}`)
     const response = await GET(request)
 
     expect(response.status).toBe(307)
@@ -64,8 +68,32 @@ describe('/api/auth/callback', () => {
     )
   })
 
+  it('rejects a mismatched state without exchanging the code', async () => {
+    const response = await GET(callbackRequest('?code=test_code&state=wrong'))
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe('http://localhost:3000/?error=invalid_state')
+    expect(mockedAxios.post).not.toHaveBeenCalled()
+  })
+
+  it('rejects a missing state cookie without exchanging the code', async () => {
+    const response = await GET(callbackRequest(`?code=test_code&state=${STATE}`, null))
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe('http://localhost:3000/?error=invalid_state')
+    expect(mockedAxios.post).not.toHaveBeenCalled()
+  })
+
+  it('clears the state cookie after a successful exchange', async () => {
+    mockedAxios.post.mockResolvedValueOnce({ data: { access_token: 'test_access_token' } })
+
+    const response = await GET(callbackRequest(`?code=test_code&state=${STATE}`))
+
+    expect(response.headers.get('set-cookie')).toMatch(/spotify_oauth_state=;/)
+  })
+
   it('should handle missing authorization code', async () => {
-    const request = new NextRequest('http://localhost:3000/api/auth/callback')
+    const request = callbackRequest(`?state=${STATE}`)
     const response = await GET(request)
 
     expect(response.status).toBe(307)
@@ -74,7 +102,7 @@ describe('/api/auth/callback', () => {
   })
 
   it('should handle OAuth error from Spotify', async () => {
-    const request = new NextRequest('http://localhost:3000/api/auth/callback?error=access_denied')
+    const request = callbackRequest('?error=access_denied')
     const response = await GET(request)
 
     expect(response.status).toBe(307)
@@ -86,7 +114,7 @@ describe('/api/auth/callback', () => {
     // Mock failed token exchange
     mockedAxios.post.mockRejectedValueOnce(new Error('Token exchange failed'))
 
-    const request = new NextRequest('http://localhost:3000/api/auth/callback?code=test_code')
+    const request = callbackRequest(`?code=test_code&state=${STATE}`)
     const response = await GET(request)
 
     expect(response.status).toBe(307)
@@ -102,7 +130,7 @@ describe('/api/auth/callback', () => {
       response: { status: 400, data: { error: 'invalid_grant' } },
     }))
 
-    const request = new NextRequest('http://localhost:3000/api/auth/callback?code=bad_code')
+    const request = callbackRequest(`?code=bad_code&state=${STATE}`)
     const response = await GET(request)
 
     expect(response.headers.get('location')).toBe('http://localhost:3000/?error=token_exchange_failed')
@@ -122,7 +150,7 @@ describe('/api/auth/callback', () => {
       },
     })
 
-    const request = new NextRequest('http://localhost:3000/api/auth/callback?code=test_code')
+    const request = callbackRequest(`?code=test_code&state=${STATE}`)
     const response = await GET(request)
 
     expect(response.status).toBe(307)
@@ -142,7 +170,7 @@ describe('/api/auth/callback', () => {
       },
     })
 
-    const request = new NextRequest('http://localhost:3000/api/auth/callback?code=test_code')
+    const request = callbackRequest(`?code=test_code&state=${STATE}`)
     const response = await GET(request)
 
     const setCookieHeader = response.headers.get('set-cookie')

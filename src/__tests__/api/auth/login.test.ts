@@ -73,6 +73,19 @@ describe('/api/auth/login', () => {
     process.env.SPOTIFY_REDIRECT_URI = originalRedirectUri
   })
 
+  it('stores the state in a short-lived HttpOnly cookie', async () => {
+    const response = await GET(new NextRequest('http://localhost:3000/api/auth/login'))
+
+    const state = new URL(response.headers.get('location')!).searchParams.get('state')
+    const setCookie = response.headers.get('set-cookie')
+
+    expect(state).toMatch(/^[0-9a-f-]{36}$/)
+    expect(setCookie).toContain(`spotify_oauth_state=${state}`)
+    expect(setCookie).toContain('HttpOnly')
+    expect(setCookie).toContain('SameSite=lax')
+    expect(setCookie).toContain('Max-Age=600')
+  })
+
   it('should generate different state parameters for CSRF protection', async () => {
     const request1 = new NextRequest('http://localhost:3000/api/auth/login')
     const request2 = new NextRequest('http://localhost:3000/api/auth/login')
