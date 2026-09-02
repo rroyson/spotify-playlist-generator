@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { safeError } from '@/utils/safe-error';
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
@@ -9,9 +10,16 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const error = searchParams.get('error');
+  const state = searchParams.get('state');
+  const expectedState = request.cookies.get('spotify_oauth_state')?.value;
 
   if (error) {
     return NextResponse.redirect(`${process.env.NEXTAUTH_URL}?error=${error}`);
+  }
+
+  // ponytail: plain compare; state is a random UUID an attacker never sees, so timing is moot
+  if (!state || !expectedState || state !== expectedState) {
+    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}?error=invalid_state`);
   }
 
   if (!code) {
@@ -40,6 +48,7 @@ export async function GET(request: NextRequest) {
     const isProduction = process.env.NODE_ENV === 'production';
 
     const response = NextResponse.redirect(process.env.NEXTAUTH_URL!);
+    response.cookies.delete('spotify_oauth_state');
     response.cookies.set('spotify_access_token', access_token, {
       httpOnly: true,
       secure: isProduction,
@@ -60,7 +69,9 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Error exchanging code for token:', error);
-    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}?error=token_exchange_failed`);
+    console.error('Error exchanging code for token:', safeError(error));
+    const response = NextResponse.redirect(`${process.env.NEXTAUTH_URL}?error=token_exchange_failed`);
+    response.cookies.delete('spotify_oauth_state');
+    return response;
   }
 }

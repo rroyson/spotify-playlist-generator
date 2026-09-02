@@ -1,27 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { getSpotifySession } from '@/utils/spotify-session';
+import { safeError } from '@/utils/safe-error';
 
 export async function POST(request: NextRequest) {
   try {
     const { songs, playlistName } = await request.json();
-    const accessToken = request.cookies.get('spotify_access_token')?.value;
-
-    if (!accessToken) {
-      return NextResponse.json({ error: 'Not authenticated with Spotify' }, { status: 401 });
-    }
 
     if (!songs || !Array.isArray(songs)) {
       return NextResponse.json({ error: 'Invalid songs data' }, { status: 400 });
     }
 
-    // Get user info
-    const userResponse = await axios.get('https://api.spotify.com/v1/me', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
+    const session = await getSpotifySession(request);
 
-    const userId = userResponse.data.id;
+    if (!session) {
+      return NextResponse.json({ error: 'Not authenticated with Spotify' }, { status: 401 });
+    }
+
+    const { accessToken, userId } = session;
 
     // Create playlist
     const playlistResponse = await axios.post(
@@ -60,7 +56,7 @@ export async function POST(request: NextRequest) {
           trackUris.push(searchResponse.data.tracks.items[0].uri);
         }
       } catch (searchError) {
-        console.error(`Failed to search for ${song.artist} - ${song.track}:`, searchError);
+        console.error(`Failed to search for ${song.artist} - ${song.track}:`, safeError(searchError));
       }
     }
 
@@ -89,7 +85,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error creating playlist:', error);
+    console.error('Error creating playlist:', safeError(error));
     return NextResponse.json({ error: 'Failed to create playlist' }, { status: 500 });
   }
 }

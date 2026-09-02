@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { validatePromptInputs } from '@/utils/input-validation'
+import { safeError } from '@/utils/safe-error'
+import { getSpotifySession } from '@/utils/spotify-session'
+import { isOverLimit } from '@/utils/rate-limit'
+
+const GENERATIONS_PER_HOUR = 20
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -89,12 +94,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const accessToken = request.cookies.get('spotify_access_token')?.value
+    // Verify the session with Spotify before spending anything on OpenAI
+    const session = await getSpotifySession(request)
 
-    if (!accessToken) {
+    if (!session) {
       return NextResponse.json(
         { error: 'Not authenticated with Spotify' },
         { status: 401 }
+      )
+    }
+
+    if (isOverLimit(session.userId, GENERATIONS_PER_HOUR)) {
+      return NextResponse.json(
+        { error: `Limit of ${GENERATIONS_PER_HOUR} playlists per hour reached. Try again later.` },
+        { status: 429 }
       )
     }
 
@@ -104,7 +117,7 @@ export async function POST(request: NextRequest) {
     const systemPrompt = getSystemPrompt(personalityMode, songCount)
 
     // Create cache key for this user's session
-    const userKey = request.cookies.get('spotify_access_token')?.value?.slice(-10) || 'anonymous'
+    const userKey = session.userId
     const cacheKey = `${userKey}-${sanitizedPrompt.toLowerCase()}-${personalityMode}-${songCount}`
 
     // Get all previous songs for this user (cross-prompt avoidance)
@@ -133,10 +146,7 @@ export async function POST(request: NextRequest) {
       max_tokens: Math.max(3000, songCount * 80),
     })
 
-    console.log('completion', completion)
-
     const rawContent = completion.choices[0].message.content || ''
-    console.log('Raw OpenAI response:', rawContent)
 
     let songs
     try {
@@ -157,7 +167,7 @@ export async function POST(request: NextRequest) {
 
       songs = JSON.parse(jsonContent)
     } catch (error) {
-      console.error('Error parsing OpenAI response:', error)
+      console.error('Error parsing OpenAI response:', safeError(error))
       console.error('Raw content was:', rawContent)
       return NextResponse.json(
         { error: 'Failed to parse OpenAI response' },
@@ -218,7 +228,7 @@ export async function POST(request: NextRequest) {
       totalSongs: validSongs.length,
     })
   } catch (error) {
-    console.error('Error generating songs:', error)
+    console.error('Error generating songs:', safeError(error))
     return NextResponse.json(
       { error: 'Failed to generate songs' },
       { status: 500 }
