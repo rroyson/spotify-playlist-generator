@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { safeError } from '@/utils/safe-error';
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Error exchanging code for token:', error);
+    console.error('Error exchanging code for token:', safeError(error));
     return NextResponse.redirect(`${process.env.NEXTAUTH_URL}?error=token_exchange_failed`);
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { validatePromptInputs } from '@/utils/input-validation'
+import { safeError } from '@/utils/safe-error'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -133,10 +134,7 @@ export async function POST(request: NextRequest) {
       max_tokens: Math.max(3000, songCount * 80),
     })
 
-    console.log('completion', completion)
-
     const rawContent = completion.choices[0].message.content || ''
-    console.log('Raw OpenAI response:', rawContent)
 
     let songs
     try {
@@ -157,7 +155,7 @@ export async function POST(request: NextRequest) {
 
       songs = JSON.parse(jsonContent)
     } catch (error) {
-      console.error('Error parsing OpenAI response:', error)
+      console.error('Error parsing OpenAI response:', safeError(error))
       console.error('Raw content was:', rawContent)
       return NextResponse.json(
         { error: 'Failed to parse OpenAI response' },
@@ -218,7 +216,7 @@ export async function POST(request: NextRequest) {
       totalSongs: validSongs.length,
     })
   } catch (error) {
-    console.error('Error generating songs:', error)
+    console.error('Error generating songs:', safeError(error))
     return NextResponse.json(
       { error: 'Failed to generate songs' },
       { status: 500 }

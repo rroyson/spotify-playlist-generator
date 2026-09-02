@@ -93,6 +93,25 @@ describe('/api/auth/callback', () => {
     expect(response.headers.get('location')).toBe('http://localhost:3000/?error=token_exchange_failed')
   })
 
+  it('never logs the Authorization header when token exchange fails', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
+    mockedAxios.post.mockRejectedValueOnce(Object.assign(new Error('Request failed with status code 400'), {
+      code: 'ERR_BAD_REQUEST',
+      config: { headers: { Authorization: 'Basic c2VjcmV0' } },
+      request: { _header: 'POST /api/token HTTP/1.1\r\nAuthorization: Basic c2VjcmV0\r\n' },
+      response: { status: 400, data: { error: 'invalid_grant' } },
+    }))
+
+    const request = new NextRequest('http://localhost:3000/api/auth/callback?code=bad_code')
+    const response = await GET(request)
+
+    expect(response.headers.get('location')).toBe('http://localhost:3000/?error=token_exchange_failed')
+    const logged = JSON.stringify(spy.mock.calls)
+    expect(logged).not.toMatch(/Authorization|Basic|Bearer/)
+    expect(logged).toContain('invalid_grant')
+    spy.mockRestore()
+  })
+
   it('should handle token response without refresh token', async () => {
     // Mock token exchange without refresh token
     mockedAxios.post.mockResolvedValueOnce({

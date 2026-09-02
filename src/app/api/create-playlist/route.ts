@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { getSpotifySession } from '@/utils/spotify-session';
+import { safeError } from '@/utils/safe-error';
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
           trackUris.push(searchResponse.data.tracks.items[0].uri);
         }
       } catch (searchError) {
-        console.error(`Failed to search for ${song.artist} - ${song.track}:`, searchError);
+        console.error(`Failed to search for ${song.artist} - ${song.track}:`, safeError(searchError));
       }
     }
 
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error creating playlist:', error);
+    console.error('Error creating playlist:', safeError(error));
     return NextResponse.json({ error: 'Failed to create playlist' }, { status: 500 });
   }
 }
