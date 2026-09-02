@@ -2,6 +2,68 @@
 
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { Mark, plural } from '@/components/ui'
+import {
+  ArrowCounterClockwiseIcon,
+  ArrowSquareOutIcon,
+  BinocularsIcon,
+  CaretDownIcon,
+  CheckIcon,
+  FireIcon,
+  FlaskIcon,
+  RadioIcon,
+  ScalesIcon,
+  SignOutIcon,
+  SparkleIcon,
+  SpotifyLogoIcon,
+  WarningCircleIcon,
+} from '@/components/icons'
+
+const MODES = [
+  {
+    value: 'default',
+    label: 'Balanced',
+    hint: 'A mix of eras, genres and moods.',
+    Icon: ScalesIcon,
+  },
+  {
+    value: 'mainstream',
+    label: 'Mainstream',
+    hint: 'Popular hits and well-known tracks.',
+    Icon: FireIcon,
+  },
+  {
+    value: 'discovery',
+    label: 'Discovery',
+    hint: 'Hidden gems and emerging artists.',
+    Icon: BinocularsIcon,
+  },
+  {
+    value: 'nostalgia',
+    label: 'Nostalgia',
+    hint: 'Classic hits from past decades.',
+    Icon: RadioIcon,
+  },
+  {
+    value: 'experimental',
+    label: 'Experimental',
+    hint: 'Unusual, boundary-pushing sounds.',
+    Icon: FlaskIcon,
+  },
+]
+
+const SONG_COUNTS = [10, 20, 30, 50]
+
+// Example output shown on the signed-out screen. Real songs, illustrative only.
+const EXAMPLE_PROMPT = 'late-night drive, synthy and a little sad'
+const EXAMPLE_SONGS = [
+  { track: 'Nightcall', artist: 'Kavinsky' },
+  { track: 'Midnight City', artist: 'M83' },
+  { track: 'A Real Hero', artist: 'College, Electric Youth' },
+  { track: 'Genesis', artist: 'Grimes' },
+]
+
+type Song = { artist: string; track: string; selected: boolean }
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -10,11 +72,7 @@ export default function Home() {
   const [songCount, setSongCount] = useState(20)
   const [personalityMode, setPersonalityMode] = useState('default')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [generatedSongs, setGeneratedSongs] = useState<Array<{
-    artist: string
-    track: string
-    selected: boolean
-  }> | null>(null)
+  const [generatedSongs, setGeneratedSongs] = useState<Song[] | null>(null)
   const [playlistResult, setPlaylistResult] = useState<{
     error?: string
     playlistUrl?: string
@@ -83,18 +141,23 @@ export default function Home() {
         personalityMode,
       })
 
-      // Add selected: true to all songs by default
       const songs = response.data.songs || []
-      const songsWithSelection = songs.map((song: {artist: string, track: string}) => ({
-        ...song,
-        selected: true
-      }))
-      setGeneratedSongs(songsWithSelection)
+      setGeneratedSongs(
+        songs.map((song: { artist: string; track: string }) => ({
+          ...song,
+          selected: true,
+        })),
+      )
     } catch (error) {
       console.error('Error generating songs:', error)
-      const res = (error as { response?: { status?: number; data?: { error?: string } } }).response
+      const res = (
+        error as { response?: { status?: number; data?: { error?: string } } }
+      ).response
       setPlaylistResult({
-        error: res?.status === 429 && res.data?.error ? res.data.error : 'Failed to generate songs',
+        error:
+          res?.status === 429 && res.data?.error
+            ? res.data.error
+            : 'Failed to generate songs',
       })
     } finally {
       setIsGenerating(false)
@@ -104,8 +167,7 @@ export default function Home() {
   const handleCreatePlaylist = async () => {
     if (!generatedSongs) return
 
-    // Filter to only include selected songs
-    const selectedSongs = generatedSongs.filter(song => song.selected)
+    const selectedSongs = generatedSongs.filter((song) => song.selected)
     if (selectedSongs.length === 0) return
 
     setIsCreatingPlaylist(true)
@@ -132,392 +194,398 @@ export default function Home() {
     setPrompt('')
     setPlaylistName('')
     setSongCount(20)
-    setPersonalityMode('mainstream')
+    setPersonalityMode('default')
   }
 
   const toggleSongSelection = (index: number) => {
     if (!generatedSongs) return
-    const updatedSongs = generatedSongs.map((song, i) => 
-      i === index ? { ...song, selected: !song.selected } : song
+    setGeneratedSongs(
+      generatedSongs.map((song, i) =>
+        i === index ? { ...song, selected: !song.selected } : song,
+      ),
     )
-    setGeneratedSongs(updatedSongs)
   }
 
-  const selectAllSongs = () => {
+  const setAllSelected = (selected: boolean) => {
     if (!generatedSongs) return
-    const updatedSongs = generatedSongs.map(song => ({ ...song, selected: true }))
-    setGeneratedSongs(updatedSongs)
+    setGeneratedSongs(generatedSongs.map((song) => ({ ...song, selected })))
   }
 
-  const deselectAllSongs = () => {
-    if (!generatedSongs) return
-    const updatedSongs = generatedSongs.map(song => ({ ...song, selected: false }))
-    setGeneratedSongs(updatedSongs)
-  }
-
-  const selectedCount = generatedSongs ? generatedSongs.filter(song => song.selected).length : 0
+  const selectedCount = generatedSongs
+    ? generatedSongs.filter((song) => song.selected).length
+    : 0
+  const activeMode =
+    MODES.find((mode) => mode.value === personalityMode) ?? MODES[0]
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-800 via-purple-800 to-slate-800 p-4 sm:p-8'>
-      <div className='max-w-4xl mx-auto'>
-        {/* Simple top nav bar when authenticated */}
-        {isAuthenticated && (
-          <div className='flex justify-end mb-4'>
-            <button
-              onClick={handleLogout}
-              className='text-white/70 hover:text-white text-sm transition-colors'
-            >
-              Logout
-            </button>
-          </div>
-        )}
+    <div className='min-h-dvh'>
+      <a
+        href='#main'
+        className='btn btn-primary sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50'
+      >
+        Skip to content
+      </a>
 
-        {/* Centered header */}
-        <div className='text-center mb-8'>
-          <h1 className='text-4xl sm:text-5xl font-bold text-white mb-4 drop-shadow-lg'>
-            AI Spotify Playlist Generator
-          </h1>
-          <p className='text-white/90 text-lg sm:text-xl'>
-            Create personalized playlists using AI and Spotify
-          </p>
+      <header className='mx-auto flex max-w-2xl items-center justify-between px-6 py-6'>
+        <div className='flex items-center gap-2.5'>
+          <Mark />
+          <span className='font-display text-lg font-bold tracking-tight'>
+            Playlist Generator
+          </span>
         </div>
+        {isAuthenticated && (
+          <button onClick={handleLogout} className='btn btn-ghost px-3 text-sm'>
+            <SignOutIcon size={16} />
+            Log out
+          </button>
+        )}
+      </header>
 
-        <div className='bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-6 sm:p-8'>
-          {!isAuthenticated ? (
-            <div className='text-center py-8'>
-              <div className='mb-6'>
-                <div className='w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4'>
-                  <span className='text-3xl'>🎵</span>
+      <main id='main' className='mx-auto max-w-2xl px-6 pb-24 pt-8 sm:pt-14'>
+        {!isAuthenticated ? (
+          <section className='space-y-10 md:space-y-12'>
+            <h1 className='font-display text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-[3.5rem]'>
+              Describe the vibe. Get the playlist.
+            </h1>
+
+            <div className='grid items-center gap-12 md:grid-cols-[1fr_0.9fr]'>
+              <div>
+                <p className='max-w-md text-lg text-ink-muted'>
+                  Tell it what you&rsquo;re in the mood for and it drafts a
+                  Spotify playlist you can trim before saving.
+                </p>
+                <button
+                  onClick={handleLogin}
+                  className='btn btn-primary mt-8 text-base'
+                >
+                  <SpotifyLogoIcon size={20} />
+                  Connect Spotify
+                </button>
+                <p className='mt-4 text-sm text-ink-muted'>
+                  Playlists are created in your own Spotify library.
+                </p>
+              </div>
+
+              <div className='relative'>
+                <div
+                  aria-hidden='true'
+                  className='absolute inset-0 rotate-2 rounded-lg bg-primary-soft'
+                />
+                <div className='relative -rotate-1 rounded-lg border border-line bg-canvas p-5 shadow-sm'>
+                  <p className='text-xs font-semibold tracking-wide text-ink-muted uppercase'>
+                    Example
+                  </p>
+                  <p className='mt-1 font-display text-lg font-bold'>
+                    &ldquo;{EXAMPLE_PROMPT}&rdquo;
+                  </p>
+                  <ol className='mt-4 divide-y divide-line'>
+                    {EXAMPLE_SONGS.map((song, i) => (
+                      <li
+                        key={song.track}
+                        className='flex items-center gap-3 py-2.5'
+                      >
+                        <span className='w-5 text-sm text-ink-muted tabular-nums'>
+                          {i + 1}
+                        </span>
+                        <div className='min-w-0'>
+                          <p className='truncate font-medium'>{song.track}</p>
+                          <p className='truncate text-sm text-ink-muted'>
+                            {song.artist}
+                          </p>
+                        </div>
+                        <CheckIcon
+                          size={18}
+                          className='ml-auto shrink-0 text-accent'
+                        />
+                      </li>
+                    ))}
+                  </ol>
                 </div>
-                <h2 className='text-2xl sm:text-3xl font-bold mb-4 text-gray-800'>
-                  Connect to Spotify
-                </h2>
-                <p className='text-gray-600 mb-8 text-lg'>
-                  Login with your Spotify account to start creating amazing
-                  playlists
-                </p>
               </div>
-              <button
-                onClick={handleLogin}
-                className='bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg text-lg'
-              >
-                🎧 Login with Spotify
-              </button>
             </div>
-          ) : (
-            <div className='space-y-8'>
-              <div className='text-center'>
-                <h2 className='text-2xl font-bold text-gray-800 mb-2'>
-                  Create Your Playlist
-                </h2>
-                <p className='text-gray-600'>
-                  Tell us what kind of music you&apos;re in the mood for
-                </p>
+          </section>
+        ) : (
+          <div className='space-y-10'>
+            <div>
+              <h1 className='font-display text-3xl font-extrabold tracking-tight sm:text-4xl'>
+                Create a playlist
+              </h1>
+              <p className='mt-2 text-ink-muted'>
+                Tell it what you&rsquo;re in the mood for.
+              </p>
+            </div>
+
+            <form onSubmit={handleGenerateSongs} className='space-y-6'>
+              <div>
+                <label htmlFor='prompt' className='label'>
+                  Describe your playlist
+                </label>
+                <textarea
+                  id='prompt'
+                  name='prompt'
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder='e.g. upbeat 90s pop for a road trip, or quiet piano for a rainy morning…'
+                  rows={3}
+                  required
+                  className='field resize-none'
+                />
               </div>
 
-              <form onSubmit={handleGenerateSongs} className='space-y-6'>
+              <div className='grid gap-6 sm:grid-cols-[minmax(0,1fr)_11rem]'>
                 <div>
-                  <label
-                    htmlFor='playlistName'
-                    className='block text-sm font-semibold text-gray-800 mb-3'
-                  >
-                    🏷️ Playlist Name (optional)
+                  <label htmlFor='playlistName' className='label'>
+                    Playlist name{' '}
+                    <span className='font-normal text-ink-muted'>
+                      (optional)
+                    </span>
                   </label>
                   <input
                     type='text'
                     id='playlistName'
+                    name='playlistName'
+                    autoComplete='off'
                     value={playlistName}
                     onChange={(e) => setPlaylistName(e.target.value)}
-                    placeholder='My Awesome Playlist'
-                    className='w-full px-4 py-4 text-gray-800 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder-gray-500 text-lg'
+                    placeholder='Rainy morning piano…'
+                    className='field'
                   />
                 </div>
-
                 <div>
-                  <label
-                    htmlFor='songCount'
-                    className='block text-sm font-semibold text-gray-800 mb-3'
-                  >
-                    🎵 Number of songs
+                  <label htmlFor='songCount' className='label'>
+                    Number of songs
                   </label>
-                  <select
-                    id='songCount'
-                    value={songCount}
-                    onChange={(e) => setSongCount(Number(e.target.value))}
-                    className='w-full px-4 py-4 text-gray-800 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg'
-                  >
-                    <option value={10}>10 songs</option>
-                    <option value={20}>20 songs</option>
-                    <option value={30}>30 songs</option>
-                    <option value={50}>50 songs</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className='block text-sm font-semibold text-gray-800 mb-3'>
-                    🎭 AI Personality Mode
-                  </label>
-                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
-                      <input
-                        type='radio'
-                        name='personalityMode'
-                        value='default'
-                        checked={personalityMode === 'default'}
-                        onChange={(e) => setPersonalityMode(e.target.value)}
-                        className='mr-3 text-blue-500 focus:ring-blue-500'
-                      />
-                      <div>
-                        <div className='font-semibold text-gray-800'>⚖️ Default</div>
-                        <div className='text-sm text-gray-600'>Balanced mix of all genres & eras</div>
-                      </div>
-                    </label>
-                    
-                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
-                      <input
-                        type='radio'
-                        name='personalityMode'
-                        value='mainstream'
-                        checked={personalityMode === 'mainstream'}
-                        onChange={(e) => setPersonalityMode(e.target.value)}
-                        className='mr-3 text-blue-500 focus:ring-blue-500'
-                      />
-                      <div>
-                        <div className='font-semibold text-gray-800'>🎯 Mainstream</div>
-                        <div className='text-sm text-gray-600'>Popular hits & well-known tracks</div>
-                      </div>
-                    </label>
-                    
-                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
-                      <input
-                        type='radio'
-                        name='personalityMode'
-                        value='discovery'
-                        checked={personalityMode === 'discovery'}
-                        onChange={(e) => setPersonalityMode(e.target.value)}
-                        className='mr-3 text-blue-500 focus:ring-blue-500'
-                      />
-                      <div>
-                        <div className='font-semibold text-gray-800'>🔍 Discovery</div>
-                        <div className='text-sm text-gray-600'>Hidden gems & emerging artists</div>
-                      </div>
-                    </label>
-                    
-                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
-                      <input
-                        type='radio'
-                        name='personalityMode'
-                        value='nostalgia'
-                        checked={personalityMode === 'nostalgia'}
-                        onChange={(e) => setPersonalityMode(e.target.value)}
-                        className='mr-3 text-blue-500 focus:ring-blue-500'
-                      />
-                      <div>
-                        <div className='font-semibold text-gray-800'>📻 Nostalgia</div>
-                        <div className='text-sm text-gray-600'>Classic hits from past decades</div>
-                      </div>
-                    </label>
-                    
-                    <label className='flex items-center p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 cursor-pointer transition-all'>
-                      <input
-                        type='radio'
-                        name='personalityMode'
-                        value='experimental'
-                        checked={personalityMode === 'experimental'}
-                        onChange={(e) => setPersonalityMode(e.target.value)}
-                        className='mr-3 text-blue-500 focus:ring-blue-500'
-                      />
-                      <div>
-                        <div className='font-semibold text-gray-800'>🧪 Experimental</div>
-                        <div className='text-sm text-gray-600'>Unique & avant-garde sounds</div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor='prompt'
-                    className='block text-sm font-semibold text-gray-800 mb-3'
-                  >
-                    🎯 Describe your perfect playlist
-                  </label>
-                  <textarea
-                    id='prompt'
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder='e.g., upbeat songs for working out, chill indie music for studying, 90s rock classics, relaxing jazz for dinner...'
-                    rows={4}
-                    required
-                    className='w-full px-4 py-4 text-gray-800 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none placeholder-gray-500 text-lg'
-                  />
-                </div>
-
-                <button
-                  type='submit'
-                  disabled={isGenerating || !prompt.trim()}
-                  className='w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg text-lg'
-                >
-                  {isGenerating
-                    ? '🎵 Generating Songs...'
-                    : '✨ Generate Song Ideas'}
-                </button>
-              </form>
-
-              {/* Song Preview - Step 1 */}
-              {generatedSongs && !playlistResult && (
-                <div className='bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-2xl p-6'>
-                  <div className='flex justify-between items-center mb-4'>
-                    <h3 className='text-xl font-bold text-gray-800'>
-                      🎵 Your AI-Generated Songs
-                    </h3>
-                    <button
-                      onClick={() => setGeneratedSongs(null)}
-                      className='text-gray-500 hover:text-gray-700 text-2xl'
+                  <div className='relative'>
+                    <select
+                      id='songCount'
+                      name='songCount'
+                      value={songCount}
+                      onChange={(e) => setSongCount(Number(e.target.value))}
+                      className='field appearance-none pr-10 text-ink'
                     >
-                      ×
-                    </button>
+                      {SONG_COUNTS.map((count) => (
+                        <option key={count} value={count}>
+                          {count} songs
+                        </option>
+                      ))}
+                    </select>
+                    <CaretDownIcon
+                      size={16}
+                      className='pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-ink-muted'
+                    />
                   </div>
+                </div>
+              </div>
 
-                  <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3'>
-                    <p className='text-gray-600'>
-                      Here are {generatedSongs.length} songs AI picked for you.
-                      Review them and create your Spotify playlist when ready!
-                    </p>
-                    <div className='flex gap-2'>
-                      <button
-                        onClick={selectAllSongs}
-                        className='text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-lg transition-colors'
-                      >
-                        Select All
-                      </button>
-                      <button
-                        onClick={deselectAllSongs}
-                        className='text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-lg transition-colors'
-                      >
-                        Deselect All
-                      </button>
+              <fieldset>
+                <legend className='label'>Taste</legend>
+                <div className='flex flex-wrap gap-2 sm:grid sm:grid-cols-5'>
+                  {MODES.map(({ value, label, Icon }) => (
+                    <label key={value} className='chip'>
+                      <input
+                        type='radio'
+                        name='personalityMode'
+                        value={value}
+                        checked={personalityMode === value}
+                        onChange={(e) => setPersonalityMode(e.target.value)}
+                        className='sr-only'
+                      />
+                      <Icon size={18} className='text-primary' />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+                <p className='mt-3 text-sm text-ink-muted'>{activeMode.hint}</p>
+              </fieldset>
+
+              <button
+                type='submit'
+                disabled={isGenerating || !prompt.trim()}
+                className='btn btn-primary w-full text-base'
+              >
+                {isGenerating ? (
+                  <>
+                    <span className='spinner' />
+                    Generating…
+                  </>
+                ) : (
+                  <>
+                    <SparkleIcon size={18} />
+                    Generate songs
+                  </>
+                )}
+              </button>
+            </form>
+
+            {isGenerating && (
+              <section
+                className='panel'
+                aria-busy='true'
+                aria-label='Generating songs'
+              >
+                <div className='skeleton h-6 w-32' />
+                <div className='skeleton mt-2 h-4 w-44' />
+                <div className='mt-5 divide-y divide-line'>
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <div key={i} className='flex items-center gap-3 py-3'>
+                      <div className='skeleton h-4 w-5' />
+                      <div className='flex-1 space-y-2'>
+                        <div className='skeleton h-3.5 w-1/2' />
+                        <div className='skeleton h-3 w-1/3' />
+                      </div>
+                      <div className='skeleton size-4' />
                     </div>
-                  </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
-                  <div className='mb-4'>
-                    <p className='text-sm text-gray-600 font-medium'>
+            {generatedSongs && !playlistResult && (
+              <section className='panel' aria-labelledby='songs-heading'>
+                <div className='flex flex-wrap items-start justify-between gap-3'>
+                  <div>
+                    <h2
+                      id='songs-heading'
+                      className='font-display text-2xl font-bold'
+                    >
+                      Your songs
+                    </h2>
+                    <p className='mt-1 text-sm text-ink-muted tabular-nums'>
                       {selectedCount} of {generatedSongs.length} songs selected
                     </p>
                   </div>
+                  <div className='flex gap-2'>
+                    <button
+                      onClick={() => setAllSelected(true)}
+                      className='btn btn-ghost px-3 text-sm'
+                    >
+                      Select all
+                    </button>
+                    <button
+                      onClick={() => setAllSelected(false)}
+                      className='btn btn-ghost px-3 text-sm'
+                    >
+                      Deselect all
+                    </button>
+                  </div>
+                </div>
 
-                  <div className='space-y-3 mb-6 max-h-60 overflow-y-auto'>
-                    {generatedSongs.map((song, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-center p-3 bg-white rounded-lg shadow-sm transition-all ${
-                          song.selected ? 'opacity-100' : 'opacity-50'
+                <ol className='-mx-2 mt-5 max-h-96 overflow-y-auto overscroll-contain border-y border-line py-1'>
+                  {generatedSongs.map((song, index) => (
+                    <li
+                      key={index}
+                      className='row'
+                      style={{ '--i': index } as React.CSSProperties}
+                    >
+                      <label
+                        className={`flex cursor-pointer items-center gap-3 rounded-sm px-2 py-2.5 transition-opacity duration-150 ${
+                          song.selected ? '' : 'opacity-45'
                         }`}
                       >
+                        <span className='w-6 text-sm text-ink-muted tabular-nums'>
+                          {index + 1}
+                        </span>
+                        <div className='min-w-0 flex-1'>
+                          <p className='truncate font-medium'>{song.track}</p>
+                          <p className='truncate text-sm text-ink-muted'>
+                            {song.artist}
+                          </p>
+                        </div>
                         <input
                           type='checkbox'
                           checked={song.selected}
                           onChange={() => toggleSongSelection(index)}
-                          className='mr-3 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
                           aria-label={`Select ${song.track} by ${song.artist}`}
+                          className='size-4 shrink-0 accent-primary'
                         />
-                        <span className='text-2xl mr-3'>🎵</span>
-                        <div className={song.selected ? '' : 'line-through'}>
-                          <p className='font-semibold text-gray-800'>
-                            {song.track}
-                          </p>
-                          <p className='text-gray-600 text-sm'>{song.artist}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      </label>
+                    </li>
+                  ))}
+                </ol>
 
-                  <div className='flex flex-col sm:flex-row gap-3'>
-                    <button
-                      onClick={handleCreatePlaylist}
-                      disabled={isCreatingPlaylist || selectedCount === 0}
-                      className='flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg'
-                    >
-                      {isCreatingPlaylist
-                        ? '🎵 Creating Playlist...'
-                        : selectedCount === 0
-                        ? 'Select songs to create playlist'
-                        : `✅ Create Playlist (${selectedCount} songs)`}
-                    </button>
-                    <button
-                      onClick={handleStartOver}
-                      className='flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg'
-                    >
-                      🔄 Start Over
-                    </button>
-                  </div>
+                <div className='mt-6 flex flex-col gap-3 sm:flex-row'>
+                  <button
+                    onClick={handleCreatePlaylist}
+                    disabled={isCreatingPlaylist || selectedCount === 0}
+                    className='btn btn-primary flex-1'
+                  >
+                    {isCreatingPlaylist ? (
+                      <>
+                        <span className='spinner' />
+                        Creating playlist…
+                      </>
+                    ) : selectedCount === 0 ? (
+                      'Select at least one song'
+                    ) : (
+                      <>
+                        <SpotifyLogoIcon size={18} />
+                        {`Create playlist · ${plural(selectedCount, 'song')}`}
+                      </>
+                    )}
+                  </button>
+                  <button onClick={handleStartOver} className='btn btn-ghost'>
+                    <ArrowCounterClockwiseIcon size={16} />
+                    Start over
+                  </button>
                 </div>
-              )}
+              </section>
+            )}
 
-              {/* Playlist Created - Step 2 */}
-              {playlistResult && !playlistResult.error && (
-                <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6'>
-                  <div className='text-center'>
-                    <span className='text-6xl mb-4 block'>🎉</span>
-                    <h3 className='text-2xl font-bold text-gray-800 mb-4'>
-                      Playlist Created Successfully!
-                    </h3>
-                    <p className='text-gray-600 mb-6 text-lg'>
-                      Your playlist has been added to your Spotify account with{' '}
-                      {playlistResult.tracksAdded} out of{' '}
-                      {playlistResult.totalSongs} songs
-                    </p>
-
-                    <div className='flex flex-col sm:flex-row gap-3 justify-center'>
-                      <a
-                        href={playlistResult.playlistUrl}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg'
-                      >
-                        🎧 Open in Spotify
-                      </a>
-                      <button
-                        onClick={handleStartOver}
-                        className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg'
-                      >
-                        ✨ Create Another Playlist
-                      </button>
-                    </div>
-                  </div>
+            {playlistResult && !playlistResult.error && (
+              <section className='panel text-center' aria-live='polite'>
+                <div className='mx-auto flex size-12 items-center justify-center rounded-full bg-accent text-on-primary'>
+                  <CheckIcon size={24} />
                 </div>
-              )}
-
-              {/* Error Messages */}
-              {playlistResult?.error && (
-                <div className='bg-red-50 border-2 border-red-200 rounded-2xl p-6'>
-                  <div className='text-red-600 text-center'>
-                    <span className='text-4xl mb-4 block'>⚠️</span>
-                    <h3 className='font-bold text-xl mb-2'>
-                      Oops! Something went wrong
-                    </h3>
-                    <p className='text-lg mb-4'>{playlistResult.error}</p>
-                    <div className='flex flex-col sm:flex-row gap-3 justify-center'>
-                      <button
-                        onClick={() => setPlaylistResult(null)}
-                        className='bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-xl transition-all'
-                      >
-                        Try Again
-                      </button>
-                      <button
-                        onClick={handleStartOver}
-                        className='bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-xl transition-all'
-                      >
-                        Start Over
-                      </button>
-                    </div>
-                  </div>
+                <h2 className='mt-4 font-display text-2xl font-bold'>
+                  Playlist created
+                </h2>
+                <p className='mt-2 text-ink-muted tabular-nums'>
+                  {playlistResult.tracksAdded ?? 0} of{' '}
+                  {plural(playlistResult.totalSongs ?? 0, 'song')} added to your
+                  Spotify library.
+                </p>
+                <div className='mt-6 flex flex-col justify-center gap-3 sm:flex-row'>
+                  <a
+                    href={playlistResult.playlistUrl}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='btn btn-primary'
+                  >
+                    <ArrowSquareOutIcon size={18} />
+                    Open in Spotify
+                  </a>
+                  <button onClick={handleStartOver} className='btn btn-ghost'>
+                    Make another
+                  </button>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+              </section>
+            )}
+
+            {playlistResult?.error && (
+              <section className='panel text-center' role='alert'>
+                <div className='mx-auto flex size-12 items-center justify-center rounded-full bg-primary-soft text-primary'>
+                  <WarningCircleIcon size={26} />
+                </div>
+                <h2 className='mt-4 font-display text-2xl font-bold'>
+                  Something went wrong
+                </h2>
+                <p className='mt-2 text-ink-muted'>{playlistResult.error}</p>
+                <div className='mt-6 flex flex-col justify-center gap-3 sm:flex-row'>
+                  <button
+                    onClick={() => setPlaylistResult(null)}
+                    className='btn btn-primary'
+                  >
+                    Try again
+                  </button>
+                  <button onClick={handleStartOver} className='btn btn-ghost'>
+                    Start over
+                  </button>
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+      </main>
     </div>
   )
 }

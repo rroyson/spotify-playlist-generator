@@ -27,8 +27,8 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByText('Connect to Spotify')).toBeInTheDocument()
-        expect(screen.getByText('🎧 Login with Spotify')).toBeInTheDocument()
+        expect(screen.getByText('Describe the vibe. Get the playlist.')).toBeInTheDocument()
+        expect(screen.getByText('Connect Spotify')).toBeInTheDocument()
       })
     })
 
@@ -42,9 +42,9 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByText('Create Your Playlist')).toBeInTheDocument()
-        expect(screen.getByLabelText(/Playlist Name/)).toBeInTheDocument()
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByText('Create a playlist')).toBeInTheDocument()
+        expect(screen.getByLabelText(/Playlist name/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       })
     })
 
@@ -57,7 +57,7 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        const loginButton = screen.getByText('🎧 Login with Spotify')
+        const loginButton = screen.getByText('Connect Spotify')
         fireEvent.click(loginButton)
         expect(window.location.href).toBe('/api/auth/login')
       })
@@ -76,10 +76,10 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByText('Logout')).toBeInTheDocument()
+        expect(screen.getByText('Log out')).toBeInTheDocument()
       })
 
-      const logoutButton = screen.getByText('Logout')
+      const logoutButton = screen.getByText('Log out')
       fireEvent.click(logoutButton)
 
       await waitFor(() => {
@@ -94,7 +94,7 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByText('Connect to Spotify')).toBeInTheDocument()
+        expect(screen.getByText('Describe the vibe. Get the playlist.')).toBeInTheDocument()
       })
     })
 
@@ -111,10 +111,10 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByText('Logout')).toBeInTheDocument()
+        expect(screen.getByText('Log out')).toBeInTheDocument()
       })
 
-      const logoutButton = screen.getByText('Logout')
+      const logoutButton = screen.getByText('Log out')
       fireEvent.click(logoutButton)
 
       // Should still handle the error gracefully
@@ -133,7 +133,7 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByText('Create Your Playlist')).toBeInTheDocument()
+        expect(screen.getByText('Create a playlist')).toBeInTheDocument()
       })
 
       // Clear previous calls
@@ -164,7 +164,7 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByText('Create Your Playlist')).toBeInTheDocument()
+        expect(screen.getByText('Create a playlist')).toBeInTheDocument()
       })
 
       // Clear previous calls
@@ -202,11 +202,11 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       })
 
-      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
-      const generateButton = screen.getByText('✨ Generate Song Ideas')
+      const promptInput = screen.getByLabelText(/Describe your playlist/)
+      const generateButton = screen.getByText('Generate songs')
 
       fireEvent.change(promptInput, { target: { value: 'upbeat workout music' } })
       fireEvent.click(generateButton)
@@ -220,7 +220,7 @@ describe('Home Component', () => {
       })
 
       await waitFor(() => {
-        expect(screen.getByText('🎵 Your AI-Generated Songs')).toBeInTheDocument()
+        expect(screen.getByText('Your songs')).toBeInTheDocument()
         expect(screen.getByText('Test Song 1')).toBeInTheDocument()
         expect(screen.getByText('Test Artist 1')).toBeInTheDocument()
       })
@@ -249,20 +249,20 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       })
 
-      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
-      const generateButton = screen.getByText('✨ Generate Song Ideas')
+      const promptInput = screen.getByLabelText(/Describe your playlist/)
+      const generateButton = screen.getByText('Generate songs')
 
       fireEvent.change(promptInput, { target: { value: 'test music' } })
       fireEvent.click(generateButton)
 
       await waitFor(() => {
-        expect(screen.getByText('✅ Create Playlist (1 songs)')).toBeInTheDocument()
+        expect(screen.getByText('Create playlist · 1 song')).toBeInTheDocument()
       })
 
-      const createPlaylistButton = screen.getByText('✅ Create Playlist (1 songs)')
+      const createPlaylistButton = screen.getByText('Create playlist · 1 song')
       fireEvent.click(createPlaylistButton)
 
       await waitFor(() => {
@@ -273,8 +273,8 @@ describe('Home Component', () => {
       })
 
       await waitFor(() => {
-        expect(screen.getByText('Playlist Created Successfully!')).toBeInTheDocument()
-        expect(screen.getByText('🎧 Open in Spotify')).toBeInTheDocument()
+        expect(screen.getByText('Playlist created')).toBeInTheDocument()
+        expect(screen.getByText('Open in Spotify')).toBeInTheDocument()
       })
     })
 
@@ -286,11 +286,11 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       })
 
-      fireEvent.change(screen.getByLabelText(/Describe your perfect playlist/), { target: { value: 'test music' } })
-      fireEvent.click(screen.getByText('✨ Generate Song Ideas'))
+      fireEvent.change(screen.getByLabelText(/Describe your playlist/), { target: { value: 'test music' } })
+      fireEvent.click(screen.getByText('Generate songs'))
 
       await waitFor(() => {
         expect(screen.getByText('Limit of 20 playlists per hour reached. Try again later.')).toBeInTheDocument()
@@ -303,17 +303,17 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       })
 
-      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
-      const generateButton = screen.getByText('✨ Generate Song Ideas')
+      const promptInput = screen.getByLabelText(/Describe your playlist/)
+      const generateButton = screen.getByText('Generate songs')
 
       fireEvent.change(promptInput, { target: { value: 'test music' } })
       fireEvent.click(generateButton)
 
       await waitFor(() => {
-        expect(screen.getByText('Oops! Something went wrong')).toBeInTheDocument()
+        expect(screen.getByText('Something went wrong')).toBeInTheDocument()
         expect(screen.getByText('Failed to generate songs')).toBeInTheDocument()
       })
     })
@@ -322,15 +322,15 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        const generateButton = screen.getByText('✨ Generate Song Ideas')
+        const generateButton = screen.getByText('Generate songs')
         expect(generateButton).toBeDisabled()
       })
 
-      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
+      const promptInput = screen.getByLabelText(/Describe your playlist/)
       fireEvent.change(promptInput, { target: { value: 'test' } })
 
       await waitFor(() => {
-        const generateButton = screen.getByText('✨ Generate Song Ideas')
+        const generateButton = screen.getByText('Generate songs')
         expect(generateButton).not.toBeDisabled()
       })
     })
@@ -345,15 +345,15 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       })
 
       // Select Discovery mode
       const discoveryRadio = screen.getByDisplayValue('discovery')
       fireEvent.click(discoveryRadio)
 
-      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
-      const generateButton = screen.getByText('✨ Generate Song Ideas')
+      const promptInput = screen.getByLabelText(/Describe your playlist/)
+      const generateButton = screen.getByText('Generate songs')
 
       fireEvent.change(promptInput, { target: { value: 'indie music' } })
       fireEvent.click(generateButton)
@@ -387,24 +387,24 @@ describe('Home Component', () => {
 
       // Generate songs first
       await waitFor(() => {
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       })
 
-      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
+      const promptInput = screen.getByLabelText(/Describe your playlist/)
       fireEvent.change(promptInput, { target: { value: 'test music' } })
       
-      const generateButton = screen.getByText('✨ Generate Song Ideas')
+      const generateButton = screen.getByText('Generate songs')
       fireEvent.click(generateButton)
 
       await waitFor(() => {
-        expect(screen.getByText('🔄 Start Over')).toBeInTheDocument()
+        expect(screen.getByText('Start over')).toBeInTheDocument()
       })
 
-      const startOverButton = screen.getByText('🔄 Start Over')
+      const startOverButton = screen.getByText('Start over')
       fireEvent.click(startOverButton)
 
       await waitFor(() => {
-        expect(screen.queryByText('🎵 Your AI-Generated Songs')).not.toBeInTheDocument()
+        expect(screen.queryByText('Your songs')).not.toBeInTheDocument()
         expect(promptInput).toHaveValue('')
       })
     })
@@ -413,7 +413,7 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        const playlistNameInput = screen.getByLabelText(/Playlist Name/)
+        const playlistNameInput = screen.getByLabelText(/Playlist name/)
         fireEvent.change(playlistNameInput, { target: { value: 'My Custom Playlist' } })
         expect(playlistNameInput).toHaveValue('My Custom Playlist')
       })
@@ -429,7 +429,7 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       }, { timeout: 5000 })
 
       const songCountSelect = screen.getByLabelText(/Number of songs/)
@@ -447,7 +447,7 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       }, { timeout: 5000 })
 
       const discoveryRadio = screen.getByDisplayValue('discovery')
@@ -474,18 +474,18 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       }, { timeout: 5000 })
 
       // Generate songs first
-      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
-      const generateButton = screen.getByText('✨ Generate Song Ideas')
+      const promptInput = screen.getByLabelText(/Describe your playlist/)
+      const generateButton = screen.getByText('Generate songs')
 
       fireEvent.change(promptInput, { target: { value: 'test music' } })
       fireEvent.click(generateButton)
 
       await waitFor(() => {
-        expect(screen.getByText('🎵 Your AI-Generated Songs')).toBeInTheDocument()
+        expect(screen.getByText('Your songs')).toBeInTheDocument()
       })
 
       // Test individual song selection
@@ -513,22 +513,22 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       }, { timeout: 5000 })
 
       // Generate songs first
-      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
-      const generateButton = screen.getByText('✨ Generate Song Ideas')
+      const promptInput = screen.getByLabelText(/Describe your playlist/)
+      const generateButton = screen.getByText('Generate songs')
 
       fireEvent.change(promptInput, { target: { value: 'test music' } })
       fireEvent.click(generateButton)
 
       await waitFor(() => {
-        expect(screen.getByText('🎵 Your AI-Generated Songs')).toBeInTheDocument()
+        expect(screen.getByText('Your songs')).toBeInTheDocument()
       })
 
       // Test deselect all
-      const deselectAllButton = screen.getByText('Deselect All')
+      const deselectAllButton = screen.getByText('Deselect all')
       fireEvent.click(deselectAllButton)
 
       await waitFor(() => {
@@ -536,7 +536,7 @@ describe('Home Component', () => {
       })
 
       // Test select all
-      const selectAllButton = screen.getByText('Select All')
+      const selectAllButton = screen.getByText('Select all')
       fireEvent.click(selectAllButton)
 
       await waitFor(() => {
@@ -564,26 +564,26 @@ describe('Home Component', () => {
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/Describe your perfect playlist/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Describe your playlist/)).toBeInTheDocument()
       }, { timeout: 5000 })
 
       // Generate songs first
-      const promptInput = screen.getByLabelText(/Describe your perfect playlist/)
-      const generateButton = screen.getByText('✨ Generate Song Ideas')
+      const promptInput = screen.getByLabelText(/Describe your playlist/)
+      const generateButton = screen.getByText('Generate songs')
 
       fireEvent.change(promptInput, { target: { value: 'test music' } })
       fireEvent.click(generateButton)
 
       await waitFor(() => {
-        expect(screen.getByText('🎵 Your AI-Generated Songs')).toBeInTheDocument()
+        expect(screen.getByText('Your songs')).toBeInTheDocument()
       })
 
       // Deselect all songs
-      const deselectAllButton = screen.getByText('Deselect All')
+      const deselectAllButton = screen.getByText('Deselect all')
       fireEvent.click(deselectAllButton)
 
       // Try to create playlist with no songs selected
-      const createPlaylistButton = screen.getByText('Select songs to create playlist')
+      const createPlaylistButton = screen.getByText('Select at least one song')
       expect(createPlaylistButton).toBeDisabled()
     })
   })
