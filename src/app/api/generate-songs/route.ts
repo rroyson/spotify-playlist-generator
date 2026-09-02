@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { validatePromptInputs } from '@/utils/input-validation'
 import { safeError } from '@/utils/safe-error'
+import { getSpotifySession } from '@/utils/spotify-session'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -90,9 +91,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const accessToken = request.cookies.get('spotify_access_token')?.value
+    // Verify the session with Spotify before spending anything on OpenAI
+    const session = await getSpotifySession(request)
 
-    if (!accessToken) {
+    if (!session) {
       return NextResponse.json(
         { error: 'Not authenticated with Spotify' },
         { status: 401 }
@@ -105,7 +107,7 @@ export async function POST(request: NextRequest) {
     const systemPrompt = getSystemPrompt(personalityMode, songCount)
 
     // Create cache key for this user's session
-    const userKey = request.cookies.get('spotify_access_token')?.value?.slice(-10) || 'anonymous'
+    const userKey = session.userId
     const cacheKey = `${userKey}-${sanitizedPrompt.toLowerCase()}-${personalityMode}-${songCount}`
 
     // Get all previous songs for this user (cross-prompt avoidance)

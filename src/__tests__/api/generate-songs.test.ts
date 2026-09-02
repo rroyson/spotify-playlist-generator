@@ -4,6 +4,7 @@
 
 import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/generate-songs/route'
+import axios from 'axios'
 
 // Mock OpenAI
 jest.mock('openai', () => {
@@ -33,6 +34,7 @@ beforeEach(() => {
     OPENAI_API_KEY: 'test_openai_key',
   }
   mockCreate.mockClear()
+  ;(axios.get as jest.Mock).mockResolvedValue({ data: { id: 'user123' } })
 })
 
 afterEach(() => {
@@ -279,6 +281,30 @@ describe('/api/generate-songs', () => {
         temperature: 0.4,
       })
     )
+  })
+
+  it('returns 401 and never calls OpenAI when Spotify rejects the token', async () => {
+    ;(axios.get as jest.Mock).mockRejectedValueOnce({ response: { status: 401 } })
+
+    const request = new NextRequest('http://localhost:3000/api/generate-songs', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        cookie: 'spotify_access_token=forged',
+      },
+      body: JSON.stringify({
+        prompt: 'upbeat workout music',
+        songCount: 20,
+        personalityMode: 'default',
+      }),
+    })
+
+    const response = await POST(request)
+    const data = await response.json()
+
+    expect(response.status).toBe(401)
+    expect(data).toEqual({ error: 'Not authenticated with Spotify' })
+    expect(mockCreate).not.toHaveBeenCalled()
   })
 
   it('should return 401 when not authenticated', async () => {
