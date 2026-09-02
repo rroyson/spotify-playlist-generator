@@ -42,14 +42,15 @@ This is a **Next.js 15 App Router** application that creates AI-powered Spotify 
 
 **State Management**: Single-page React component (`page.tsx`) manages entire user flow with useState hooks for authentication, generation, and playlist creation states.
 
-**Caching Strategy**: In-memory user session cache prevents AI from repeating songs within the same session. Uses Spotify access token suffix as user identifier with automatic cleanup.
+**Caching Strategy**: In-memory user session cache prevents AI from repeating songs within the same session. Keyed on the Spotify user id from the verified session, with automatic cleanup. Generations are also capped per user per hour (429 over the limit).
 
 **AI Personality Modes**: Five distinct AI personalities (default, mainstream, discovery, nostalgia, experimental) that modify OpenAI system prompts to influence music recommendations.
 
 **Authentication Flow**:
 
 - Spotify OAuth with `playlist-modify-public` scope
-- HttpOnly cookies for token storage
+- HttpOnly cookies for token storage; OAuth `state` is stored in a short-lived cookie and verified in the callback
+- Every API route resolves the session through the shared Spotify session guard (validates the cookie against Spotify) before doing any work
 - Automatic token validation on page focus/visibility change
 - Graceful fallback for expired sessions
 

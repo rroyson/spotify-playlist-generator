@@ -322,6 +322,40 @@ describe('/api/create-playlist', () => {
     expect(data.totalSongs).toBe(3)
   })
 
+  it('never logs the Authorization header when a track search fails', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
+    mockedAxios.get
+      .mockResolvedValueOnce({ data: { id: 'test_user_id' } })
+      .mockRejectedValueOnce(Object.assign(new Error('Request failed with status code 429'), {
+        code: 'ERR_BAD_REQUEST',
+        config: { headers: { Authorization: 'Bearer test_token' } },
+        request: { _header: 'GET /v1/search HTTP/1.1\r\nAuthorization: Bearer test_token\r\n' },
+        response: { status: 429, data: { error: { status: 429, message: 'rate limited' } } },
+      }))
+    mockedAxios.post.mockResolvedValueOnce({
+      data: { id: 'test_playlist_id', external_urls: { spotify: 'https://open.spotify.com/playlist/test_playlist_id' } },
+    })
+
+    const request = new NextRequest('http://localhost:3000/api/create-playlist', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        cookie: 'spotify_access_token=test_token',
+      },
+      body: JSON.stringify({ songs: [mockSongs[0]], playlistName: 'Leak Test' }),
+    })
+
+    const response = await POST(request)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.tracksAdded).toBe(0)
+    const logged = JSON.stringify(spy.mock.calls)
+    expect(logged).not.toMatch(/Authorization|Basic|Bearer/)
+    expect(logged).toContain('rate limited')
+    spy.mockRestore()
+  })
+
   it('should use default playlist name when not provided', async () => {
     // Setup axios mocks in order: user profile, searches, playlist creation, add tracks
     mockedAxios.get
